@@ -9,6 +9,20 @@ defmodule Norma.Utils do
     end
   end
 
+  @doc """
+  At first, I tried to do this with just the standard library
+  ```
+  "mazing.studio"
+  |> URI.parse
+  |> Map.put(:scheme, "http")
+  |> URI.to_string
+
+  > "http:mazing.studio"
+  ```
+  but the result wasn't what I expected.
+
+  Help would be appreciated here to solve it better.
+  """
   def form_url(%URI{host: host,
                      path: path,
                      scheme: scheme,

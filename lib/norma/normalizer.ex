@@ -1,12 +1,24 @@
 defmodule Norma.Normalizer do
   alias Norma.{Utils}
+  @moduledoc """
+  `normalize/2` reduces the given URL and options until these conditions
+  are met:
+    1. `options == %{}`
+    2. `url.scheme != nil`
+  """
 
+  @doc """
+  Handles a missing scheme. Defaults to `http` or infers it from the port.
+  """
   def normalize(url = %URI{scheme: nil}, options) do
     url
     |> infer_protocol
     |> normalize(options)
   end
 
+  @doc """
+  Removes URL fragments.
+  """
   def normalize(url = %URI{fragment: fragment}, options = %{remove_fragment: true})
     when fragment != nil do
     url
@@ -14,6 +26,9 @@ defmodule Norma.Normalizer do
     |> normalize(options |> Map.drop([:remove_fragment]))
   end
 
+  @doc """
+  Forces path to be "/".
+  """
   def normalize(url = %URI{path: path}, options = %{force_root_path: true})
   when path != "/" do
     url
@@ -21,12 +36,18 @@ defmodule Norma.Normalizer do
     |> normalize(options |> Map.drop([:force_root_path]))
   end
 
+  @doc """
+  Removes "www." from the host.
+  """
   def normalize(url, options = %{remove_www: true}) do
     url
     |> remove_www
     |> normalize(options |> Map.drop([:remove_www]))
   end
 
+  @doc """
+  If the URL elements are valid now, forms a string.
+  """
   def normalize(url, %{}), do: url |> Utils.form_url
 
   defp infer_protocol(url = %URI{port: port}),

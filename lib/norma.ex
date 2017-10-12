@@ -1,19 +1,23 @@
 defmodule Norma do
   alias Norma.{Normalizer}
-  @moduledoc """
-  Documentation for Norma.
-  """
 
   @doc """
-  Hello world.
+  Normalize URL according to the options given.
+  Defaults scheme to `http`.
+
+  ## Options
+  - `remove_fragment`
+  - `force_root_path`
+  - `remove_www`
+
+  Check the README for the full examples.
 
   ## Examples
 
-      iex> Norma.hello
-      :world
+      iex> Norma.normalize("//www.mazing.studio", %{remove_www: true})
+      "http://mazing.studio"
 
   """
-
   def normalize(url, options \\ %{}) do
     url
     |> URI.parse
