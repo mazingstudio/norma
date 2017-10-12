@@ -4,10 +4,14 @@ defmodule Norma.Mixfile do
   def project do
     [
       app: :norma,
-      version: "0.1.0",
+      version: "0.9.0",
       elixir: "~> 1.5",
       start_permanent: Mix.env == :prod,
-      deps: deps()
+      description: description(),
+      package: package(),
+      deps: deps(),
+      name: "Norma",
+      source_url: "https://github.com/mazingstudio/norma"
     ]
   end
 
@@ -15,6 +19,20 @@ defmodule Norma.Mixfile do
   def application do
     [
       extra_applications: [:logger]
+    ]
+  end
+
+  defp description do
+    "Normalize URLs (doesn't use Regex, Erlang 20+ compatible)"
+  end
+
+  defp package do
+    [
+      maintainers: ["Zura Guerra", "Mazing Studio"],
+      licenses: ["MIT"],
+      links: %{
+        "Github" => "https://github.com/mazingstudio/norma"
+      }
     ]
   end
 
