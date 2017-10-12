@@ -71,7 +71,6 @@ end
 - Rewrite scheme inference from port
 - Maybe change options interface
 - Deactivate defaulting to `http` with an option
-- Fix bug where an url without scheme cannot have `www` stripped from the host
 
 ### Adding options
 

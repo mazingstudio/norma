@@ -57,6 +57,14 @@ defmodule Norma.Normalizer do
 
   defp add_root_path(url), do: url |> Map.put(:path, "/")
 
+  # If a scheme is not provided, `URI.parse` puts
+  # the host info in `:path`.
+  defp remove_www(url = %URI{host: host, path: path})
+  when is_nil(host) and path != nil do
+    url
+    |> Map.put(:host, parse_host(path))
+    |> Map.put(:path, nil)
+  end
   defp remove_www(url = %URI{host: host}),
     do: url |> Map.put(:host, parse_host(host))
 
