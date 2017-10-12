@@ -1,5 +1,10 @@
 # Norma
 
+[![Hex.pm](https://img.shields.io/hexpm/v/norma.svg?style=flat-square)]()
+[![Hex.pm](https://img.shields.io/hexpm/l/norma.svg?style=flat-square)]()
+[![Maintenance](https://img.shields.io/maintenance/yes/2017.svg?style=flat-square)]()
+[![GitHub issues](https://img.shields.io/github/issues/zuraguerra/dumballah.svg?style=flat-square)](https://github.com/mazingstudio/norma/issues)
+
 Normalize URLs to the format you need.
 
 ## Installation
