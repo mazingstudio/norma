@@ -76,7 +76,7 @@ end
 ### Adding options
 
 1. Add support for the option in `/lib/norma/normalizer.ex`. Prefer pattern matching and guards over `if`s and `case`s.
-
+2. Add a test in `/test/norma_test.exs`.
 2. Add documentation to the `README`.
 3. Send a PR 🎉
 
@@ -84,7 +84,7 @@ end
 
 ## A Mazing project
 
-![](https://avatars3.githubusercontent.com/u/19610766?v=4&s=200)
+![Mazing Studio](https://avatars3.githubusercontent.com/u/19610766?v=4&s=200)
 
 Sponsored by [_Mazing Studio_](https://mazing.studio)
 
