@@ -8,11 +8,20 @@ defmodule Norma.Normalizer do
   """
 
   @doc """
+  Leave the scheme blank.
+  """
+  def normalize(url, options = %{remove_scheme: true}) do
+    url
+    |> add_blank_scheme
+    |> normalize(options |> Map.drop([:remove_scheme]))
+  end
+
+  @doc """
   Handles a missing scheme. Defaults to `http` or infers it from the port.
   """
   def normalize(url = %URI{scheme: nil}, options) do
     url
-    |> infer_protocol
+    |> infer_scheme
     |> normalize(options)
   end
 
@@ -50,7 +59,9 @@ defmodule Norma.Normalizer do
   """
   def normalize(url, %{}), do: url |> Utils.form_url
 
-  defp infer_protocol(url = %URI{port: port}),
+  defp add_blank_scheme(url), do: url |> Map.put(:scheme, "")
+
+  defp infer_scheme(url = %URI{port: port}),
     do: url |> Map.put(:scheme, Utils.port_handler(port))
 
   defp remove_fragment(url), do: url |> Map.put(:fragment, nil)

@@ -37,6 +37,12 @@ iex> Norma.normalize("//www.mazing.studio:1337/test#test", options)
 
 ### Options
 
+- Remove scheme:
+  ```elixir
+  iex> Norma.normalize("https://mazing.studio", %{remove_scheme: true})
+  > "mazing.studio"
+  ```
+
 - Remove fragment:
   ```elixir
   iex> Norma.normalize("https://mazing.studio#test", %{remove_fragment: true})
@@ -75,7 +81,6 @@ end
 ### TO-DO
 - Rewrite scheme inference from port
 - Maybe change options interface
-- Deactivate defaulting to `http` with an option
 
 ### Adding options
 

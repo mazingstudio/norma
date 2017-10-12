@@ -28,13 +28,15 @@ defmodule Norma.Utils do
                      scheme: scheme,
                      query: query,
                      fragment: fragment}) do
-    scheme                   # "http"
-    |> safe_concat("://")    # "http://"
+    form_scheme(scheme)      # "http://"
     |> safe_concat(host)     # "http://google.com"
     |> safe_concat(path)     # "http://google.com/test"
     |> safe_concat(fragment) # "http://google.com/test#cats"
     |> safe_concat(query)    # "http://google.com/test#cats?dogs_allowed=ño"
   end
+
+  defp form_scheme(""), do: ""
+  defp form_scheme(scheme), do: scheme <> "://"
 
   defp safe_concat(left, right) do
     left  = left  || ""
