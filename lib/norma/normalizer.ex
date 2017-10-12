@@ -20,7 +20,7 @@ defmodule Norma.Normalizer do
   Removes URL fragments.
   """
   def normalize(url = %URI{fragment: fragment}, options = %{remove_fragment: true})
-    when fragment != nil do
+  when fragment != nil do
     url
     |> remove_fragment
     |> normalize(options |> Map.drop([:remove_fragment]))
