@@ -97,6 +97,6 @@ end
 
 Sponsored by [_Mazing Studio_](https://mazing.studio)
 
-We love solving problems using Elixir and Go.
+We love to solve problems using Elixir and Go.
 
-Have a project we can help you with? [Tell us about it!](https://mazing.studio/#section-form)
+Have a project you need help with? [Tell us about it!](https://mazing.studio/#section-form)
