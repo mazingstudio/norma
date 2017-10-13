@@ -89,6 +89,10 @@ end
 2. Add documentation to the `README`.
 3. Send a PR 🎉
 
+### Maintainers
+
+- [Zura Guerra](https://github.com/ZuraGuerra) - hey(at)zura.space or [@grafofilia](https://twitter.com/grafofilia)
+
 ---
 
 ## A Mazing project
