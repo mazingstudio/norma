@@ -1,5 +1,5 @@
 defmodule Norma.Utils do
-  def port_handler (port) do
+  def port_handler(port) do
     case port do
       443  -> "https"
       80   -> "http"

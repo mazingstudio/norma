@@ -28,11 +28,17 @@ Norma depends heavily on the implementation of the `URI` module (part of the sta
 ## Usage
 
 ```elixir
-iex> Norma.normalize("mazing.studio")
+iex> Norma.normalize!("mazing.studio")
 > "http://mazing.studio"
 
+iex> Norma.normalize("mazing.studio")
+> {:ok, "http://mazing.studio"}
+
+iex> Norma.normalize("mazing")
+> {:error, "Not an URL."}
+
 iex> options = %{remove_fragment: true, force_root_path: true, remove_www: true}
-iex> Norma.normalize("//www.mazing.studio:1337/test#test", options)
+iex> Norma.normalize!("//www.mazing.studio:1337/test#test", options)
 > "http://mazing.studio/"
 ```
 
@@ -40,25 +46,25 @@ iex> Norma.normalize("//www.mazing.studio:1337/test#test", options)
 
 - Remove scheme:
   ```elixir
-  iex> Norma.normalize("https://mazing.studio", %{remove_scheme: true})
+  iex> Norma.normalize!("https://mazing.studio", %{remove_scheme: true})
   > "mazing.studio"
   ```
 
 - Remove fragment:
   ```elixir
-  iex> Norma.normalize("https://mazing.studio#test", %{remove_fragment: true})
+  iex> Norma.normalize!("https://mazing.studio#test", %{remove_fragment: true})
   > "https://mazing.studio"
   ```
 
 - Force root path:
   ```elixir
-  iex> Norma.normalize("https://mazing.studio/test", %{force_root_path: true})
+  iex> Norma.normalize!("https://mazing.studio/test", %{force_root_path: true})
   > "https://mazing.studio/"
   ```
 
 - Remove `www`:
   ```elixir
-  iex> Norma.normalize("https://www.mazing.studio", %{remove_www: true})
+  iex> Norma.normalize!("https://www.mazing.studio", %{remove_www: true})
   > "https://mazing.studio"
   ```
 
@@ -73,7 +79,7 @@ def creation_changeset(params) do
   }
   %MyEntity{}
   |> cast(params, @fields)
-  |> put_change(:url, Norma.normalize(params.url, norma_options))
+  |> put_change(:url, Norma.normalize!(params.url, norma_options))
 end
 ```
 

@@ -9,29 +9,29 @@ defmodule NormaTest do
   @full_example "//www.mazing.studio:1337/test#test"
 
   test "scheme defaults to `http` when not provided (nor a port)",
-    do: assert Norma.normalize(@without_scheme) == "http://mazing.studio"
+    do: assert Norma.normalize!(@without_scheme) == "http://mazing.studio"
 
   test "scheme gets infered from port",
-    do: assert Norma.normalize(@without_scheme_but_port) == "ftp://mazing.studio"
+    do: assert Norma.normalize!(@without_scheme_but_port) == "ftp://mazing.studio"
 
   test "force root path",
-    do: assert Norma.normalize(@with_path,
+    do: assert Norma.normalize!(@with_path,
                                %{force_root_path: true}) == "https://mazing.studio/"
 
   test "remove fragment",
-    do: assert Norma.normalize(@with_fragment,
+    do: assert Norma.normalize!(@with_fragment,
                                %{remove_fragment: true}) == "https://mazing.studio"
 
   test "remove www",
-    do: assert Norma.normalize(@with_www,
+    do: assert Norma.normalize!(@with_www,
                                %{remove_www: true}) == "https://mazing.studio"
 
   test "remove scheme",
-    do: assert Norma.normalize(@with_scheme,
+    do: assert Norma.normalize!(@with_scheme,
                                %{remove_scheme: true}) == "mazing.studio"
 
   test "full normalization",
-    do: assert Norma.normalize(@full_example,
+    do: assert Norma.normalize!(@full_example,
                                %{force_root_path: true,
                                  remove_fragment: true,
                                       remove_www: true}) == "http://mazing.studio/"

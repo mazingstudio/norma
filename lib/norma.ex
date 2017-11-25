@@ -15,12 +15,35 @@ defmodule Norma do
   ## Examples
 
       iex> Norma.normalize("//www.mazing.studio", %{remove_www: true})
-      "http://mazing.studio"
+      {:ok, "http://mazing.studio"}
 
   """
   def normalize(url, options \\ %{}) do
-    url
-    |> URI.parse
-    |> Normalizer.normalize(options)
+    if is_url?(url) do
+      normalized_url = url
+        |> URI.parse
+        |> Normalizer.normalize(options)
+      {:ok, normalized_url}
+    else
+      {:error, "Not an URL."}
+    end
   end
+
+  @doc """
+  Similar to `normalize/2`, but will return the given string unchanged
+  if it's not an URL.
+
+  ## Examples
+
+      iex> Norma.normalize!("//www.mazing.studio", %{remove_www: true})
+      "http://mazing.studio"
+  """
+  def normalize!(url, options \\ %{}) do
+    case normalize(url, options) do
+      {:ok, normalized_url} -> normalized_url
+      {:error, _} -> url
+    end
+  end
+
+  defp is_url?(url), do: url |> String.contains?(".")
 end
