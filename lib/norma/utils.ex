@@ -48,10 +48,10 @@ defmodule Norma.Utils do
   defp form_query(nil), do: ""
   defp form_query(query), do: "?" <> query
 
-  def form_port(""), do: ""
-  def form_port(port)
+  defp form_port(""), do: ""
+  defp form_port(port)
   when port not in @masked_ports, do: ":" <> port
-  def form_port(_port), do: ""
+  defp form_port(_port), do: ""
 
   defp safe_concat(left, right) do
     left  = left  || ""

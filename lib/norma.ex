@@ -18,7 +18,7 @@ defmodule Norma do
       {:ok, "http://mazing.studio"}
 
   """
-  def normalize(url, options \\ %{}) do
+  def normalize_if_valid(url, options \\ %{}) do
     if is_url?(url) do
       normalized_url = url
         |> safe_parse
@@ -30,7 +30,7 @@ defmodule Norma do
   end
 
   @doc """
-  Similar to `normalize/2`, but will return the given string unchanged
+  Similar to `normalize_if_valid/2`, but will return the given string unchanged
   if it's not an URL.
 
   ## Examples
@@ -38,8 +38,8 @@ defmodule Norma do
       iex> Norma.normalize!("//www.mazing.studio", %{remove_www: true})
       "http://mazing.studio"
   """
-  def normalize!(url, options \\ %{}) do
-    case normalize(url, options) do
+  def normalize(url, options \\ %{}) do
+    case normalize_if_valid(url, options) do
       {:ok, normalized_url} -> normalized_url
       {:error, _} -> url
     end
@@ -73,5 +73,8 @@ defmodule Norma do
   defp has_valid_host?(url = %URI{host: host})
   when host != nil, do: url
 
+  @doc """
+  This sure looks dumb, but a valid host will normally have at least a dot.
+  """
   defp is_url?(url), do: url |> String.contains?(".")
 end
