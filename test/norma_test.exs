@@ -1,8 +1,9 @@
 defmodule NormaTest do
   use ExUnit.Case
+
   @with_scheme "https://mazing.studio"
   @without_scheme "mazing.studio"
-  @with_scheme_but_path "mazing.studio/test"
+  @without_scheme_but_path "mazing.studio/test"
   @without_scheme_but_port "mazing.studio:21"
   @without_scheme_but_port_alt "mazing.studio:1337"
   @without_scheme_but_port_and_path "mazing.studio:1337/test"
@@ -41,6 +42,6 @@ defmodule NormaTest do
     do: assert Norma.normalize!(@full_example,
                                %{force_root_path: true,
                                  remove_fragment: true,
-                                      remove_www: true}) == "http://mazing.studio/"
+                                      remove_www: true}) == "http://mazing.studio:1337/"
 
 end
