@@ -21,7 +21,7 @@ defmodule Norma do
   def normalize(url, options \\ %{}) do
     if is_url?(url) do
       normalized_url = url
-        |> URI.parse
+        |> safe_parse
         |> Normalizer.normalize(options)
       {:ok, normalized_url}
     else
@@ -44,6 +44,34 @@ defmodule Norma do
       {:error, _} -> url
     end
   end
+
+  @doc """
+  Solve an issue related to the regex provided by the URI spec
+  (see https://tools.ietf.org/html/rfc3986#appendix-B).
+
+  If trying to parse from string to %URI{} something like "mazing.studio:80",
+  the result will be:
+    %URI{scheme: "mazing.studio", path: "21", host: nil}
+    _(Other keys skipped for brevity, but their value is `nil`.)_
+
+  But "//mazing.studio:80", will be parsed correctly:
+    %URI{host: "mazing.studio", authority: "mazing.studio:80", port: 80}
+  """
+  defp safe_parse(url) do
+    url
+    |> URI.parse
+    |> has_valid_host?
+  end
+
+  defp has_valid_host?(url = %URI{host: nil}) do
+    url = url |> URI.to_string
+
+    "//" <> url
+    |> safe_parse
+  end
+
+  defp has_valid_host?(url = %URI{host: host})
+  when host != nil, do: url
 
   defp is_url?(url), do: url |> String.contains?(".")
 end
