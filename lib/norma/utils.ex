@@ -50,8 +50,8 @@ defmodule Norma.Utils do
 
   defp form_port(""), do: ""
   defp form_port(port)
-  when port not in @masked_ports, do: ":" <> port
-  defp form_port(_port), do: ""
+  when port in @masked_ports, do: ""
+  defp form_port(port), do: ":" <> port
 
   defp safe_concat(left, right) do
     left  = left  || ""
