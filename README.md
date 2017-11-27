@@ -85,10 +85,6 @@ end
 
 ## Contributing
 
-### TO-DO
-- Rewrite scheme inference from port
-- Maybe change options interface
-
 ### Adding options
 
 1. Add support for the option in `/lib/norma/normalizer.ex`. Prefer pattern matching and guards over `if`s and `case`s.
