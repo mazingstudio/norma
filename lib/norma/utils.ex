@@ -1,5 +1,7 @@
 defmodule Norma.Utils do
-  def port_handler (port) do
+  @masked_ports ["443", "80", "8080", "21"]
+
+  def port_handler(port) do
     case port do
       443  -> "https"
       80   -> "http"
@@ -24,15 +26,17 @@ defmodule Norma.Utils do
   Help would be appreciated here to solve it better.
   """
   def form_url(%URI{host: host,
-                     path: path,
-                     scheme: scheme,
-                     query: query,
-                     fragment: fragment}) do
-    form_scheme(scheme)                   # "http://"
-    |> safe_concat(host)                  # "http://google.com"
-    |> safe_concat(path)                  # "http://google.com/test"
-    |> Kernel.<>(form_fragment(fragment)) # "http://google.com/test#cats"
-    |> Kernel.<>(form_query(query))       # "http://google.com/test#cats?dogs_allowed=ño"
+                    path: path,
+                    scheme: scheme,
+                    query: query,
+                    port: port,
+                    fragment: fragment}) do
+    form_scheme(scheme)                         # "http://"
+    |> safe_concat(host)                        # "http://google.com"
+    |> Kernel.<>(form_port(port |> to_string))  # "http://google.com:1337"
+    |> safe_concat(path)                        # "http://google.com:1337/test"
+    |> Kernel.<>(form_fragment(fragment))       # "http://google.com:1337/test#cats"
+    |> Kernel.<>(form_query(query))             # "http://google.com:1337/test#cats?dogs_allowed=ño"
   end
 
   defp form_scheme(""), do: ""
@@ -43,6 +47,11 @@ defmodule Norma.Utils do
 
   defp form_query(nil), do: ""
   defp form_query(query), do: "?" <> query
+
+  defp form_port(""), do: ""
+  defp form_port(port)
+  when port in @masked_ports, do: ""
+  defp form_port(port), do: ":" <> port
 
   defp safe_concat(left, right) do
     left  = left  || ""

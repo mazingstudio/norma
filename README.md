@@ -31,6 +31,12 @@ Norma depends heavily on the implementation of the `URI` module (part of the sta
 iex> Norma.normalize("mazing.studio")
 > "http://mazing.studio"
 
+iex> Norma.normalize_if_valid("mazing.studio")
+> {:ok, "http://mazing.studio"}
+
+iex> Norma.normalize_if_valid("mazing")
+> {:error, "Not an URL."}
+
 iex> options = %{remove_fragment: true, force_root_path: true, remove_www: true}
 iex> Norma.normalize("//www.mazing.studio:1337/test#test", options)
 > "http://mazing.studio/"
