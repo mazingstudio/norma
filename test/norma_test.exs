@@ -11,6 +11,7 @@ defmodule NormaTest do
   @with_fragment "https://mazing.studio#test"
   @with_www "https://www.mazing.studio"
   @full_example "//www.mazing.studio:1337/test#test"
+  @upcase "HTTP://EXAMPLE.COM/DIR?PAGE=2"
 
   describe "normalize_if_valid" do
     test "returns the normalized URL",
@@ -184,6 +185,20 @@ defmodule NormaTest do
     @tag :skip
     test "does not strip a relative protocol with option normalize_protocol: false" do
       assert(Norma.normalize("//example.com", %{normalize_protocol: false}) == "//example.com")
+    end
+  end
+
+  describe "downcase_host" do
+    test "does not downcase host by default" do
+      assert Norma.normalize(@upcase) == "http://EXAMPLE.COM/DIR?PAGE=2"
+    end
+
+    test "does not downcase host with downcase_host: false" do
+      assert Norma.normalize(@upcase, %{downcase_host: false}) == "http://EXAMPLE.COM/DIR?PAGE=2"
+    end
+
+    test "downcases host with downcase_host: true" do
+      assert Norma.normalize(@upcase, %{downcase_host: true}) == "http://example.com/DIR?PAGE=2"
     end
   end
 end

@@ -9,6 +9,7 @@ defmodule Norma do
   - `remove_fragment`
   - `force_root_path`
   - `remove_www`
+  - `downcase_host`
 
   Check the README for the full examples.
 
