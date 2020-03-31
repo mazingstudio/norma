@@ -161,11 +161,18 @@ defmodule NormaTest do
     end
   end
 
-  describe "query" do
+  describe "query params" do
     test "sorts query params" do
       assert(
         Norma.normalize("example.com?b=foo&a=bar&123=hi") ==
           "http://example.com?123=hi&a=bar&b=foo"
+      )
+    end
+
+    test "puts the fragment before the query params" do
+      assert(
+        Norma.normalize("example.com?b=foo&a=bar&123=hi#top") ==
+          "http://example.com#top?123=hi&a=bar&b=foo"
       )
     end
 
@@ -180,11 +187,6 @@ defmodule NormaTest do
   describe "relative protocol" do
     test "strips a relative protocol and replaces with http" do
       assert(Norma.normalize("//example.com") == "http://example.com")
-    end
-
-    @tag :skip
-    test "does not strip a relative protocol with option normalize_protocol: false" do
-      assert(Norma.normalize("//example.com", %{normalize_protocol: false}) == "//example.com")
     end
   end
 

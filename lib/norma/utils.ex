@@ -54,6 +54,7 @@ defmodule Norma.Utils do
   defp form_fragment(fragment), do: "#" <> fragment
 
   defp form_query(nil), do: ""
+
   defp form_query(query), do: "?" <> (query |> URI.decode_query() |> URI.encode_query())
 
   defp form_port(""), do: ""
