@@ -3,11 +3,11 @@ defmodule Norma.Utils do
 
   def port_handler(port) do
     case port do
-      443  -> "https"
-      80   -> "http"
+      443 -> "https"
+      80 -> "http"
       8080 -> "http"
-      21   -> "ftp"
-      _    -> "http"
+      21 -> "ftp"
+      _ -> "http"
     end
   end
 
@@ -25,18 +25,26 @@ defmodule Norma.Utils do
 
   Help would be appreciated here to solve it better.
   """
-  def form_url(%URI{host: host,
-                    path: path,
-                    scheme: scheme,
-                    query: query,
-                    port: port,
-                    fragment: fragment}) do
-    form_scheme(scheme)                         # "http://"
-    |> safe_concat(host)                        # "http://google.com"
-    |> Kernel.<>(form_port(port |> to_string))  # "http://google.com:1337"
-    |> safe_concat(path)                        # "http://google.com:1337/test"
-    |> Kernel.<>(form_fragment(fragment))       # "http://google.com:1337/test#cats"
-    |> Kernel.<>(form_query(query))             # "http://google.com:1337/test#cats?dogs_allowed=ño"
+  def form_url(%URI{
+        host: host,
+        path: path,
+        scheme: scheme,
+        query: query,
+        port: port,
+        fragment: fragment
+      }) do
+    # "http://"
+    form_scheme(scheme)
+    # "http://google.com"
+    |> safe_concat(host)
+    # "http://google.com:1337"
+    |> Kernel.<>(form_port(port |> to_string))
+    # "http://google.com:1337/test"
+    |> safe_concat(path)
+    # "http://google.com:1337/test#cats"
+    |> Kernel.<>(form_fragment(fragment))
+    # "http://google.com:1337/test#cats?dogs_allowed=ño"
+    |> Kernel.<>(form_query(query))
   end
 
   defp form_scheme(""), do: ""
@@ -46,15 +54,19 @@ defmodule Norma.Utils do
   defp form_fragment(fragment), do: "#" <> fragment
 
   defp form_query(nil), do: ""
-  defp form_query(query), do: "?" <> query
+
+  defp form_query(query), do: "?" <> (query |> URI.decode_query() |> URI.encode_query())
 
   defp form_port(""), do: ""
+
   defp form_port(port)
-  when port in @masked_ports, do: ""
+       when port in @masked_ports,
+       do: ""
+
   defp form_port(port), do: ":" <> port
 
   defp safe_concat(left, right) do
-    left  = left  || ""
+    left = left || ""
     right = right || ""
     left <> right
   end

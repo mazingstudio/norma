@@ -1,5 +1,6 @@
 defmodule Norma.Normalizer do
   alias Norma.{Utils}
+
   @moduledoc """
   `normalize/2` reduces the given URL and options until these conditions
   are met:
@@ -29,7 +30,7 @@ defmodule Norma.Normalizer do
   Removes URL fragments.
   """
   def normalize(url = %URI{fragment: fragment}, options = %{remove_fragment: true})
-  when fragment != nil do
+      when fragment != nil do
     url
     |> remove_fragment
     |> normalize(options |> Map.drop([:remove_fragment]))
@@ -39,7 +40,7 @@ defmodule Norma.Normalizer do
   Forces path to be "/".
   """
   def normalize(url = %URI{path: path}, options = %{force_root_path: true})
-  when path != "/" do
+      when path != "/" do
     url
     |> add_root_path
     |> normalize(options |> Map.drop([:force_root_path]))
@@ -55,9 +56,18 @@ defmodule Norma.Normalizer do
   end
 
   @doc """
+  Downcases host.
+  """
+  def normalize(url, options = %{downcase_host: true}) do
+    url
+    |> downcase_host()
+    |> normalize(options |> Map.drop([:downcase_host]))
+  end
+
+  @doc """
   If the URL elements are valid now, forms a string.
   """
-  def normalize(url, %{}), do: url |> Utils.form_url
+  def normalize(url, %{}), do: url |> Utils.form_url()
 
   defp add_blank_scheme(url), do: url |> Map.put(:scheme, "")
 
@@ -71,13 +81,18 @@ defmodule Norma.Normalizer do
   # If a scheme is not provided, `URI.parse` puts
   # the host info in `:path`.
   defp remove_www(url = %URI{host: host, path: path})
-  when is_nil(host) and path != nil do
+       when is_nil(host) and path != nil do
     url
     |> Map.put(:host, parse_host(path))
     |> Map.put(:path, nil)
   end
+
   defp remove_www(url = %URI{host: host}),
     do: url |> Map.put(:host, parse_host(host))
 
   defp parse_host(host), do: host |> String.trim_leading("www.")
+
+  defp downcase_host(url) do
+    Map.put(url, :host, String.downcase(url.host))
+  end
 end

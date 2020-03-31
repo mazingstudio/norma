@@ -66,6 +66,11 @@ iex> Norma.normalize("//www.mazing.studio:1337/test#test", options)
   ```elixir
   iex> Norma.normalize("https://www.mazing.studio", %{remove_www: true})
   > "https://mazing.studio"
+
+- Downcase host:
+  ```elixir
+  iex> Norma.normalize("https://EXAMPLE.COM/FAQS", %{downcase_host: true})
+  > "https://example.com/FAQS"
   ```
 
 ### With Ecto
