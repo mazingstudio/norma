@@ -2,9 +2,9 @@ defmodule NormalizeUrlTest do
   use ExUnit.Case
 
   test "adds a protocol by default" do
-    assert(Norma.normalize("example.com")          == "http://example.com")
-    assert(Norma.normalize("example.com/dir")      == "http://example.com/dir")
-    assert(Norma.normalize("example.com:3000")     == "http://example.com:3000")
+    assert(Norma.normalize("example.com") == "http://example.com")
+    assert(Norma.normalize("example.com/dir") == "http://example.com/dir")
+    assert(Norma.normalize("example.com:3000") == "http://example.com:3000")
     assert(Norma.normalize("example.com:3000/dir") == "http://example.com:3000/dir")
   end
 
@@ -49,11 +49,16 @@ defmodule NormalizeUrlTest do
   end
 
   test "sorts query params" do
-    assert(Norma.normalize("google.com?b=foo&a=bar&123=hi") == "http://google.com?123=hi&a=bar&b=foo")
+    assert(
+      Norma.normalize("google.com?b=foo&a=bar&123=hi") == "http://google.com?123=hi&a=bar&b=foo"
+    )
   end
 
   test "encodes back query params" do
-    assert(Norma.normalize("google.com?b=foo's+bar&a=joe+smith") == "http://google.com?a=joe+smith&b=foo%27s+bar")
+    assert(
+      Norma.normalize("google.com?b=foo's+bar&a=joe+smith") ==
+        "http://google.com?a=joe+smith&b=foo%27s+bar"
+    )
   end
 
   test "strips url fragment" do
@@ -65,37 +70,46 @@ defmodule NormalizeUrlTest do
   end
 
   test "does not strip a relative protocol with option normalize_protocol: false" do
-    assert(Norma.normalize("//google.com", [normalize_protocol: false]) == "//google.com")
+    assert(Norma.normalize("//google.com", normalize_protocol: false) == "//google.com")
   end
 
   test "does not strip www with option strip_www: false" do
-    assert(Norma.normalize("www.google.com", [strip_www: false]) == "http://www.google.com")
+    assert(Norma.normalize("www.google.com", strip_www: false) == "http://www.google.com")
   end
 
   test "does not strip a url fragment with option strip_fragment: false" do
-    assert(Norma.normalize("www.google.com#about.html", [strip_fragment: false]) == "http://google.com#about.html")
+    assert(
+      Norma.normalize("www.google.com#about.html", strip_fragment: false) ==
+        "http://google.com#about.html"
+    )
   end
 
   test "adds root path if enabled and needed" do
-    assert(Norma.normalize("http://google.com", [add_root_path: true]) == "http://google.com/")
+    assert(Norma.normalize("http://google.com", add_root_path: true) == "http://google.com/")
   end
 
   test "handles URLs with port" do
-    assert Norma.normalize("http://example.com:3000")      == "http://example.com:3000"
-    assert Norma.normalize("https://example.com:3000")     == "https://example.com:3000"
+    assert Norma.normalize("http://example.com:3000") == "http://example.com:3000"
+    assert Norma.normalize("https://example.com:3000") == "https://example.com:3000"
     assert Norma.normalize("https://example.com:3000/dir") == "https://example.com:3000/dir"
-    assert Norma.normalize("example.com:3000")             == "http://example.com:3000"
-    assert Norma.normalize("example.com:3000/dir")         == "http://example.com:3000/dir"
+    assert Norma.normalize("example.com:3000") == "http://example.com:3000"
+    assert Norma.normalize("example.com:3000/dir") == "http://example.com:3000/dir"
   end
 
   # Temporary patch, proper downcasing should only affect the host, not change the path, the protocol should always be downcase
   describe "downcasing" do
     test "does not downcase by default" do
-      assert(Norma.normalize("http://example.com/Path/With/Upcase") == "http://example.com/Path/With/Upcase")
+      assert(
+        Norma.normalize("http://example.com/Path/With/Upcase") ==
+          "http://example.com/Path/With/Upcase"
+      )
     end
 
     test "downcase if explicitly activated" do
-      assert(Norma.normalize("http://example.com/Path/With/Upcase", [downcase: true]) == "http://example.com/path/with/upcase")
+      assert(
+        Norma.normalize("http://example.com/Path/With/Upcase", downcase: true) ==
+          "http://example.com/path/with/upcase"
+      )
     end
   end
 end

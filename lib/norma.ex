@@ -20,9 +20,11 @@ defmodule Norma do
   """
   def normalize_if_valid(url, options \\ %{}) do
     if is_url?(url) do
-      normalized_url = url
+      normalized_url =
+        url
         |> safe_parse
         |> Normalizer.normalize(options)
+
       {:ok, normalized_url}
     else
       {:error, "Not an URL."}
@@ -59,22 +61,31 @@ defmodule Norma do
   """
   defp safe_parse(url) do
     url
-    |> URI.parse
+    |> URI.parse()
     |> has_valid_host?
   end
 
   defp has_valid_host?(url = %URI{host: nil}) do
-    url = url |> URI.to_string
+    url = url |> URI.to_string()
 
-    "//" <> url
+    ("//" <> url)
     |> safe_parse
   end
 
   defp has_valid_host?(url = %URI{host: host})
-  when host != nil, do: url
+       when host != nil,
+       do: url
 
   @doc """
+  Helps discard strings that are not URLs, like mailto and javascript links.
+
   This sure looks dumb, but a valid host will normally have at least a dot.
   """
-  defp is_url?(url), do: url |> String.contains?(".")
+  defp is_url?(url) do
+    cond do
+      String.starts_with?(url, "mailto:") -> false
+      String.starts_with?(url, "javascript:") -> false
+      true -> String.contains?(url, ".")
+    end
+  end
 end
