@@ -2,7 +2,8 @@
 
 [![Hex.pm](https://img.shields.io/hexpm/v/norma.svg?style=flat-square)]()
 [![Hex.pm](https://img.shields.io/hexpm/l/norma.svg?style=flat-square)]()
-[![Maintenance](https://img.shields.io/maintenance/yes/2017.svg?style=flat-square)]()
+[![Hex.pm](https://img.shields.io/hexpm/dt/norma.svg?style=flat-square)]()
+[![Maintenance](https://img.shields.io/maintenance/yes/2020.svg?style=flat-square)]()
 [![GitHub issues](https://img.shields.io/github/issues/zuraguerra/dumballah.svg?style=flat-square)](https://github.com/mazingstudio/norma/issues)
 [![Travis](https://img.shields.io/travis/mazingstudio/norma.svg)]()
 
@@ -99,7 +100,7 @@ end
 
 ### Maintainers
 
-- [Zura Guerra](https://github.com/ZuraGuerra) - hey(at)zura.space or [@grafofilia](https://twitter.com/grafofilia)
+- [Zura Guerra](https://github.com/ZuraGuerra) - [@grafofilia](https://twitter.com/grafofilia)
 
 ---
 
