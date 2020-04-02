@@ -42,8 +42,18 @@ defmodule Norma.Normalizer do
   def normalize(url = %URI{path: path}, options = %{force_root_path: true})
       when path != "/" do
     url
-    |> add_root_path
+    |> force_root_path
     |> normalize(options |> Map.drop([:force_root_path]))
+  end
+
+  @doc """
+  Adds a trailing slash to the path unless it's already "/" or has an extension
+  """
+  def normalize(url = %URI{path: path}, options = %{add_trailing_slash: true})
+      when path != "/" do
+    url
+    |> add_trailing_slash()
+    |> normalize(options |> Map.drop([:add_trailing_slash]))
   end
 
   @doc """
@@ -76,7 +86,15 @@ defmodule Norma.Normalizer do
 
   defp remove_fragment(url), do: url |> Map.put(:fragment, nil)
 
-  defp add_root_path(url), do: url |> Map.put(:path, "/")
+  defp force_root_path(url), do: url |> Map.put(:path, "/")
+
+  defp add_trailing_slash(url = %URI{path: path}) do
+    if path && String.contains?(path, ".") do
+      url
+    else
+      url |> Map.put(:path, "#{path}/")
+    end
+  end
 
   # If a scheme is not provided, `URI.parse` puts
   # the host info in `:path`.

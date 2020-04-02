@@ -125,6 +125,49 @@ defmodule NormaTest do
         )
   end
 
+  describe "add_trailing_slash" do
+    test "doesn't add trailing slash by default" do
+      assert(Norma.normalize("http://example.com") == "http://example.com")
+      assert(Norma.normalize("http://example.com/test") == "http://example.com/test")
+    end
+
+    test "adds trailing slash to the path if enabled" do
+      assert(
+        Norma.normalize("http://example.com", %{add_trailing_slash: true}) ==
+          "http://example.com/"
+      )
+
+      assert(
+        Norma.normalize("http://example.com/test", %{add_trailing_slash: true}) ==
+          "http://example.com/test/"
+      )
+
+      assert(
+        Norma.normalize("http://example.com/test#faqs?page=2", %{add_trailing_slash: true}) ==
+          "http://example.com/test/#faqs?page=2"
+      )
+    end
+
+    test "does not repeat /" do
+      assert(
+        Norma.normalize("http://example.com/", %{add_trailing_slash: true}) ==
+          "http://example.com/"
+      )
+    end
+
+    test "does not add trailing_slash if path is a file" do
+      assert(
+        Norma.normalize("http://example.com/sitemap.xml", %{add_trailing_slash: true}) ==
+          "http://example.com/sitemap.xml"
+      )
+
+      assert(
+        Norma.normalize("http://example.com/top.html#faqs?p=2", %{add_trailing_slash: true}) ==
+          "http://example.com/top.html#faqs?p=2"
+      )
+    end
+  end
+
   describe "www" do
     test "keeps www by default" do
       assert(Norma.normalize(@with_www) == "https://www.mazing.studio")
