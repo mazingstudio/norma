@@ -4,7 +4,7 @@ defmodule Norma.Mixfile do
   def project do
     [
       app: :norma,
-      version: "1.7.4",
+      version: "1.8.4",
       elixir: "~> 1.3",
       start_permanent: Mix.env == :prod,
       description: description(),
