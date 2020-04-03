@@ -8,6 +8,7 @@ defmodule Norma do
   ## Options
   - `remove_fragment`
   - `force_root_path`
+  - `add_trailing_slash`
   - `remove_www`
   - `downcase_host`
 

@@ -57,6 +57,12 @@ iex> Norma.normalize("//www.mazing.studio:1337/test#test", options)
   > "https://mazing.studio"
   ```
 
+- Add trailing slash:
+  ```elixir
+  iex> Norma.normalize("https://mazing.studio/test", %{add_trailing_slash: true})
+  > "https://mazing.studio/test/"
+  ```
+
 - Force root path:
   ```elixir
   iex> Norma.normalize("https://mazing.studio/test", %{force_root_path: true})
