@@ -49,18 +49,16 @@ defmodule Norma do
     end
   end
 
-  @doc """
-  Solve an issue related to the regex provided by the URI spec
-  (see https://tools.ietf.org/html/rfc3986#appendix-B).
-
-  If trying to parse from string to %URI{} something like "mazing.studio:80",
-  the result will be:
-    %URI{scheme: "mazing.studio", path: "21", host: nil}
-    _(Other keys skipped for brevity, but their value is `nil`.)_
-
-  But "//mazing.studio:80", will be parsed correctly:
-    %URI{host: "mazing.studio", authority: "mazing.studio:80", port: 80}
-  """
+  # Solve an issue related to the regex provided by the URI spec
+  # (see https://tools.ietf.org/html/rfc3986#appendix-B).
+  #
+  # If trying to parse from string to %URI{} something like "mazing.studio:80",
+  # the result will be:
+  #   %URI{scheme: "mazing.studio", path: "21", host: nil}
+  #   _(Other keys skipped for brevity, but their value is `nil`.)_
+  #
+  # But "//mazing.studio:80", will be parsed correctly:
+  #   %URI{host: "mazing.studio", authority: "mazing.studio:80", port: 80}
   defp safe_parse(url) do
     url
     |> URI.parse()
@@ -78,11 +76,9 @@ defmodule Norma do
        when host != nil,
        do: url
 
-  @doc """
-  Helps discard strings that are not URLs, like mailto and javascript links.
-
-  This sure looks dumb, but a valid host will normally have at least a dot.
-  """
+  # Helps discard strings that are not URLs, like mailto and javascript links.
+  #
+  # This sure looks dumb, but a valid host will normally have at least a dot.
   defp is_url?(url) do
     cond do
       String.starts_with?(url, "mailto:") -> false
