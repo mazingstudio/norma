@@ -47,6 +47,10 @@ defmodule Norma.Utils do
     |> Kernel.<>(form_query(query))
   end
 
+  #####################
+  # Private functions #
+  #####################
+
   defp form_scheme(""), do: ""
   defp form_scheme(scheme), do: scheme <> "://"
 
