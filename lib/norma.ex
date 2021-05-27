@@ -49,6 +49,10 @@ defmodule Norma do
     end
   end
 
+  #####################
+  # Private functions #
+  #####################
+
   # Solve an issue related to the regex provided by the URI spec
   # (see https://tools.ietf.org/html/rfc3986#appendix-B).
   #
