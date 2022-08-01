@@ -85,7 +85,7 @@ defmodule Norma.Normalizer do
   defp force_root_path(url), do: url |> Map.put(:path, "/")
 
   defp add_trailing_slash(url = %URI{path: path}) do
-    if path && String.contains?(path, ".") do
+    if path && (String.contains?(path, ".") || String.ends_with?(path, "/")) do
       url
     else
       url |> Map.put(:path, "#{path}/")
