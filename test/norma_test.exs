@@ -153,6 +153,11 @@ defmodule NormaTest do
         Norma.normalize("http://example.com/", %{add_trailing_slash: true}) ==
           "http://example.com/"
       )
+
+      assert(
+        Norma.normalize("http://example.com/faq/", %{add_trailing_slash: true}) ==
+          "http://example.com/faq/"
+      )
     end
 
     test "does not add trailing_slash if path is a file" do

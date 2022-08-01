@@ -1,83 +1,79 @@
 defmodule Norma.Normalizer do
-  alias Norma.{Utils}
-
-  @moduledoc """
-  `normalize/2` reduces the given URL and options until these conditions
-  are met:
-    1. `options == %{}`
-    2. `url.scheme != nil`
-  """
+  alias Norma.Utils
 
   @doc """
-  Leave the scheme blank.
+  Normalizes the given `url`, accepts the following options:
+
+    - `remove_fragment`
+    - `force_root_path`
+    - `add_trailing_slash`
+    - `remove_www`
+    - `downcase_host`
   """
-  def normalize(url, options = %{remove_scheme: true}) do
+  def normalize(url, options \\ %{}), do: reduce_normalize(url, options)
+
+  #####################
+  # Private functions #
+  #####################
+
+  # `reduce_normalize/2` reduces the given URL and options until these conditions are met:
+  #  1. `options == %{}`
+  #  2. `url.scheme != nil`
+
+  # Leaves the scheme blank.
+  defp reduce_normalize(url, options = %{remove_scheme: true}) do
     url
     |> add_blank_scheme
-    |> normalize(options |> Map.drop([:remove_scheme]))
+    |> reduce_normalize(options |> Map.drop([:remove_scheme]))
   end
 
-  @doc """
-  Handles a missing scheme. Defaults to `http` or infers it from the port.
-  """
-  def normalize(url = %URI{scheme: nil}, options) do
+  # Handles a missing scheme. Defaults to `http` or infers it from the port.
+  defp reduce_normalize(url = %URI{scheme: nil}, options) do
     url
     |> infer_scheme
-    |> normalize(options)
+    |> reduce_normalize(options)
   end
 
-  @doc """
-  Removes URL fragments.
-  """
-  def normalize(url = %URI{fragment: fragment}, options = %{remove_fragment: true})
-      when fragment != nil do
+  # Removes URL fragments.
+  defp reduce_normalize(url = %URI{fragment: fragment}, options = %{remove_fragment: true})
+       when fragment != nil do
     url
     |> remove_fragment
-    |> normalize(options |> Map.drop([:remove_fragment]))
+    |> reduce_normalize(options |> Map.drop([:remove_fragment]))
   end
 
-  @doc """
-  Forces path to be "/".
-  """
-  def normalize(url = %URI{path: path}, options = %{force_root_path: true})
-      when path != "/" do
+  # Forces path to be "/".
+  defp reduce_normalize(url = %URI{path: path}, options = %{force_root_path: true})
+       when path != "/" do
     url
     |> force_root_path
-    |> normalize(options |> Map.drop([:force_root_path]))
+    |> reduce_normalize(options |> Map.drop([:force_root_path]))
   end
 
-  @doc """
-  Adds a trailing slash to the path unless it's already "/" or has an extension
-  """
-  def normalize(url = %URI{path: path}, options = %{add_trailing_slash: true})
-      when path != "/" do
+  # Adds a trailing slash to the path unless it's already "/" or has an extension
+  defp reduce_normalize(url = %URI{path: path}, options = %{add_trailing_slash: true})
+       when path != "/" do
     url
     |> add_trailing_slash()
-    |> normalize(options |> Map.drop([:add_trailing_slash]))
+    |> reduce_normalize(options |> Map.drop([:add_trailing_slash]))
   end
 
-  @doc """
-  Removes "www." from the host.
-  """
-  def normalize(url, options = %{remove_www: true}) do
+  # Removes "www." from the host.
+  defp reduce_normalize(url, options = %{remove_www: true}) do
     url
     |> remove_www
-    |> normalize(options |> Map.drop([:remove_www]))
+    |> reduce_normalize(options |> Map.drop([:remove_www]))
   end
 
-  @doc """
-  Downcases host.
-  """
-  def normalize(url, options = %{downcase_host: true}) do
+  # Downcases host.
+  defp reduce_normalize(url, options = %{downcase_host: true}) do
     url
     |> downcase_host()
-    |> normalize(options |> Map.drop([:downcase_host]))
+    |> reduce_normalize(options |> Map.drop([:downcase_host]))
   end
 
-  @doc """
-  If the URL elements are valid now, forms a string.
-  """
-  def normalize(url, %{}), do: url |> Utils.form_url()
+  # If the URL elements are valid now, forms a string.
+  defp reduce_normalize(url, %{}), do: url |> Utils.form_url()
 
   defp add_blank_scheme(url), do: url |> Map.put(:scheme, "")
 
@@ -89,7 +85,7 @@ defmodule Norma.Normalizer do
   defp force_root_path(url), do: url |> Map.put(:path, "/")
 
   defp add_trailing_slash(url = %URI{path: path}) do
-    if path && String.contains?(path, ".") do
+    if path && (String.contains?(path, ".") || String.ends_with?(path, "/")) do
       url
     else
       url |> Map.put(:path, "#{path}/")
