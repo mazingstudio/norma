@@ -217,10 +217,10 @@ defmodule NormaTest do
       )
     end
 
-    test "puts the fragment before the query params" do
+    test "puts the fragment after the query params" do
       assert(
         Norma.normalize("example.com?b=foo&a=bar&123=hi#top") ==
-          "http://example.com#top?123=hi&a=bar&b=foo"
+          "http://example.com?123=hi&a=bar&b=foo#top"
       )
     end
 

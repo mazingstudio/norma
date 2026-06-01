@@ -41,10 +41,10 @@ defmodule Norma.Utils do
     |> Kernel.<>(form_port(port |> to_string))
     # "http://google.com:1337/test"
     |> safe_concat(path)
-    # "http://google.com:1337/test#cats"
-    |> Kernel.<>(form_fragment(fragment))
-    # "http://google.com:1337/test#cats?dogs_allowed=ño"
+    # "http://google.com:1337/test?dogs_allowed=ño"
     |> Kernel.<>(form_query(query))
+    # "http://google.com:1337/test?dogs_allowed=ño#cats"
+    |> Kernel.<>(form_fragment(fragment))
   end
 
   #####################
