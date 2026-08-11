@@ -24,12 +24,16 @@ defmodule Norma do
   ## Options
   - `remove_fragment`
   - `force_root_path`
+  - `add_root_path`
   - `add_trailing_slash`
   - `remove_www`
-  - `downcase_host`
+  - `remove_scheme`
   - `restore_old_query_behavior` — rebuild the query the 1.x way (keys sorted,
     duplicate keys collapsed to the last value) instead of preserving input
     order and duplicates
+
+  Host case is always folded to lowercase via RFC 3986 normalization
+  (`:uri_string.normalize/1`). The 1.x `downcase_host` option was removed in 2.0.
 
   Check the README for the full examples.
 

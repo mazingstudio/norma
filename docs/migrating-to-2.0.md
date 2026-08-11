@@ -260,6 +260,41 @@ If you still need Elixir 1.11–1.12, stay on Norma 1.9.x.
 
 ---
 
+## D8 — `downcase_host` option removed
+
+**What changed.** In 1.x, host case was preserved unless you passed
+`downcase_host: true`. In 2.0, **D6** always runs `:uri_string.normalize/1`,
+which folds the host to lowercase. The option can no longer be honored
+(`downcase_host: false` would fight unconditional RFC normalize), so it was
+**removed** from the public API.
+
+Passing `%{downcase_host: …}` is silently ignored (unknown keys are not
+errors). There is **no escape hatch** to keep an uppercase host.
+
+### Before / after
+
+```elixir
+# 1.x default — host case preserved
+iex> Norma.normalize("HTTP://EXAMPLE.COM/DIR?PAGE=2")
+"http://EXAMPLE.COM/DIR?PAGE=2"
+
+# 1.x opt-in
+iex> Norma.normalize("HTTP://EXAMPLE.COM/DIR", %{downcase_host: true})
+"http://example.com/DIR"
+
+# 2.0 — always downcased; option gone
+iex> Norma.normalize("HTTP://EXAMPLE.COM/DIR?PAGE=2")
+"http://example.com/DIR?PAGE=2"
+```
+
+### Migration tips
+
+- Delete any `downcase_host: true` / `false` keys from options maps.
+- If you **needed** an uppercase host in the string, normalize first, then
+  re-case the host yourself (unusual; RFC hosts are case-insensitive).
+
+---
+
 ## Quick checklist
 
 1. Bump `{:norma, "~> 2.0"}` and ensure Elixir `>= 1.13`.
@@ -270,7 +305,9 @@ If you still need Elixir 1.11–1.12, stay on Norma 1.9.x.
    - query keys sorted / unique → use `restore_old_query_behavior: true` or adapt → **D1**
    - `force_root_path` kept `?query` / `#fragment` → **D4**
    - trailing slash skipped because of a `.` mid-path → **D3**
+   - `downcase_host: false` kept uppercase hosts → **D8** / **D6**
 4. Prefer `add_root_path` when you only want a root path on host-only URLs.
+5. Drop `downcase_host` from options maps (**D8**).
 
 ---
 
@@ -283,3 +320,4 @@ If you still need Elixir 1.11–1.12, stay on Norma 1.9.x.
 | D3 | Trailing slash / final segment | final-segment `.` only | — |
 | D4 | `force_root_path` | wipe path+query+fragment | —; new `add_root_path` |
 | D5 | `URI.new/1` | required | stay on 1.9.x if Elixir &lt; 1.13 |
+| D8 | `downcase_host` option | removed (always fold) | none |

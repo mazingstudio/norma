@@ -34,6 +34,9 @@ Breaking release. Migration notes with before/after strings:
   `has_valid_host?` loop. `URI.new/1` returns `{:ok, uri} | {:error, part}`
   and needs **Elixir 1.13+**. Scheme-less `//…` inference remains a single
   explicit branch, not mutual recursion.
+- **D8 — `downcase_host` option removed.** Host case folding is always on via
+  D6 (`:uri_string.normalize/1`). Passing `%{downcase_host: true | false}` is
+  ignored; there is no way to keep an uppercase host in the normalized output.
 
 ### Toolchain
 

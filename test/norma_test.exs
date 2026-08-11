@@ -196,8 +196,9 @@ defmodule NormaTest do
       assert(Norma.normalize("//example.com:80") == "http://example.com")
     end
 
-    test "adds the correct protocol if 8080 is specified" do
-      assert(Norma.normalize("//example.com:8080") == "http://example.com")
+    # D6: 8080 is no longer scheme-blind masked; only scheme-default ports omit.
+    test "keeps non-default port 8080" do
+      assert(Norma.normalize("//example.com:8080") == "http://example.com:8080")
     end
 
     test "handles URLs with port" do
@@ -210,24 +211,36 @@ defmodule NormaTest do
   end
 
   describe "query params" do
-    test "sorts query params" do
+    # D1: default preserves input order (no sort). 1.x sorted keys.
+    test "preserves query param order" do
       assert(
         Norma.normalize("example.com?b=foo&a=bar&123=hi") ==
-          "http://example.com?123=hi&a=bar&b=foo"
+          "http://example.com?b=foo&a=bar&123=hi"
       )
     end
 
+    # D1: order preserved; fragment still last (RFC order).
     test "puts the fragment after the query params" do
       assert(
         Norma.normalize("example.com?b=foo&a=bar&123=hi#top") ==
-          "http://example.com?123=hi&a=bar&b=foo#top"
+          "http://example.com?b=foo&a=bar&123=hi#top"
       )
     end
 
+    # D1: encode without reordering; apostrophe percent-encoded.
     test "encodes back query params" do
       assert(
         Norma.normalize("example.com?b=foo's+bar&a=joe+smith") ==
-          "http://example.com?a=joe+smith&b=foo%27s+bar"
+          "http://example.com?b=foo%27s+bar&a=joe+smith"
+      )
+    end
+
+    # D1 escape hatch: 1.x sort + last-wins dedupe.
+    test "restore_old_query_behavior sorts and dedupes" do
+      assert(
+        Norma.normalize("example.com?b=foo&a=bar&123=hi&b=last", %{
+          restore_old_query_behavior: true
+        }) == "http://example.com?123=hi&a=bar&b=last"
       )
     end
   end
@@ -238,17 +251,11 @@ defmodule NormaTest do
     end
   end
 
-  describe "downcase_host" do
-    test "does not downcase host by default" do
-      assert Norma.normalize(@upcase) == "http://EXAMPLE.COM/DIR?PAGE=2"
-    end
-
-    test "does not downcase host with downcase_host: false" do
-      assert Norma.normalize(@upcase, %{downcase_host: false}) == "http://EXAMPLE.COM/DIR?PAGE=2"
-    end
-
-    test "downcases host with downcase_host: true" do
-      assert Norma.normalize(@upcase, %{downcase_host: true}) == "http://example.com/DIR?PAGE=2"
+  # D6/D8: host case folding is unconditional via :uri_string.normalize;
+  # the 1.x :downcase_host option was removed.
+  describe "host case" do
+    test "downcases host by default" do
+      assert Norma.normalize(@upcase) == "http://example.com/DIR?PAGE=2"
     end
   end
 end

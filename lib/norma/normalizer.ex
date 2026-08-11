@@ -4,8 +4,10 @@ defmodule Norma.Normalizer do
 
   Called by `Norma` after validation and `URI.parse/1`. Options match the
   public `Norma.normalize/2` API (`remove_fragment`, `force_root_path`,
-  `add_root_path`, `add_trailing_slash`, `remove_www`, `downcase_host`,
-  `remove_scheme`).
+  `add_root_path`, `add_trailing_slash`, `remove_www`, `remove_scheme`).
+
+  Host case folding is not an option: `Utils.form_url/2` always runs
+  `:uri_string.normalize/1`, which downcases the host (2.0 D6/D8).
   """
 
   alias Norma.Utils
@@ -16,7 +18,6 @@ defmodule Norma.Normalizer do
           | :add_root_path
           | :add_trailing_slash
           | :remove_www
-          | :downcase_host
           | :remove_scheme
 
   @type options :: %{optional(option_key()) => boolean()}
@@ -29,7 +30,6 @@ defmodule Norma.Normalizer do
     - `add_root_path`
     - `add_trailing_slash`
     - `remove_www`
-    - `downcase_host`
   """
   @spec normalize(URI.t(), options()) :: String.t()
   def normalize(url, options \\ %{}), do: reduce_normalize(url, options)
@@ -99,15 +99,9 @@ defmodule Norma.Normalizer do
     |> reduce_normalize(options |> Map.drop([:remove_www]))
   end
 
-  # Downcases host.
-  defp reduce_normalize(url, options = %{downcase_host: true}) do
-    url
-    |> downcase_host()
-    |> reduce_normalize(options |> Map.drop([:downcase_host]))
-  end
-
   # If the URL elements are valid now, forms a string. Remaining options
   # (e.g. `restore_old_query_behavior`) are consumed by `form_url/2`.
+  # Unknown keys (including removed 1.x `:downcase_host`) are ignored.
   defp reduce_normalize(url, options), do: Utils.form_url(url, options)
 
   defp add_blank_scheme(url), do: %{url | scheme: ""}
@@ -160,8 +154,4 @@ defmodule Norma.Normalizer do
     do: %{url | host: parse_host(host)}
 
   defp parse_host(host), do: host |> String.trim_leading("www.")
-
-  defp downcase_host(url) do
-    %{url | host: String.downcase(url.host)}
-  end
 end

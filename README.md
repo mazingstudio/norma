@@ -67,9 +67,13 @@ Options are a map. Every key defaults to `false`, and any subset may be combined
 | `remove_scheme: true` | Drops `http://` / `https://` from the output |
 | `remove_fragment: true` | Drops everything from `#` onward |
 | `remove_www: true` | Drops a leading `www.` from the host |
-| `downcase_host: true` | Lowercases the host only; the path keeps its case |
-| `add_trailing_slash: true` | Appends `/` to the path when it does not look like a file |
-| `force_root_path: true` | Replaces the path with `/` |
+| `add_trailing_slash: true` | Appends `/` to the path when the final segment is not file-like |
+| `force_root_path: true` | Replaces the path with `/` and clears query + fragment |
+| `add_root_path: true` | Sets path to `/` only when path is empty |
+| `restore_old_query_behavior: true` | 1.x query sort + last-wins dedupe |
+
+Host case is always lowercased (RFC 3986 normalize). The 1.x `downcase_host`
+option was removed in 2.0 — see [Migrating to 2.0](docs/migrating-to-2.0.md).
 
 ```elixir
 iex> Norma.normalize("https://example.com", %{remove_scheme: true})
@@ -81,7 +85,7 @@ iex> Norma.normalize("https://example.com#faqs", %{remove_fragment: true})
 iex> Norma.normalize("https://www.example.com", %{remove_www: true})
 "https://example.com"
 
-iex> Norma.normalize("https://EXAMPLE.COM/FAQS", %{downcase_host: true})
+iex> Norma.normalize("https://EXAMPLE.COM/FAQS")
 "https://example.com/FAQS"
 
 iex> Norma.normalize("https://example.com/docs", %{add_trailing_slash: true})
