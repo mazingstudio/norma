@@ -23,17 +23,42 @@ end
 If you prefer to pin the minor line:
 
 ```elixir
-{:norma, "~> 1.9"}
+{:norma, "~> 2.0"}
 ```
 
 Documentation is on [HexDocs](https://hexdocs.pm/norma).
 
+### Which version do I want?
+
+| | `2.0` | `1.9` |
+| --- | --- | --- |
+| Elixir | `~> 1.13` (tested 1.13, 1.16, 1.19, 1.20) | `~> 1.11` (tested 1.13 through 1.19) |
+| Output | RFC 3986 normalized | as written since 2017 |
+| Docs | this file | [README at `v1.9.0`](https://github.com/mazingstudio/norma/blob/v1.9.0/README.md) · [HexDocs](https://hexdocs.pm/norma/1.9.0) |
+
+`2.0` requires Elixir 1.13 because it uses `URI.new/1`. On an older Elixir, pin
+`{:norma, "~> 1.9"}` — it is still supported and its output is unchanged from `1.x`.
+
+**What 2.0 introduces**
+
+- **RFC 3986 normalization by default.** Dot segments are resolved (`/a/../b` → `/b`), the
+  host is lowercased, percent-encoding is normalized, and a port is dropped only when it is
+  the scheme's default. `8080` now survives; `http://…:443` keeps its port.
+- **Query strings keep input order and duplicate keys.** `?tag=a&tag=b` round-trips instead
+  of being sorted and de-duplicated. `restore_old_query_behavior: true` brings `1.x` back.
+- **`force_root_path` now clears query and fragment too** ([#7](https://github.com/mazingstudio/norma/issues/7)),
+  and a new `add_root_path` slashes only an empty path.
+- **`add_trailing_slash` looks at the final path segment only**, so `/v1.2/docs` gets its slash.
+- **`downcase_host` was removed** — RFC normalization lowercases the host unconditionally,
+  so the option could no longer be honored.
+
+Full list with before/after strings: [Migrating to 2.0](docs/migrating-to-2.0.md) and the
+[CHANGELOG](CHANGELOG.md).
+
 ### Note on compatibility
 
-Norma requires Elixir `~> 1.11` and is tested against Elixir 1.13 through 1.19.
-
-It leans heavily on the standard library's `URI` module, whose parsing behavior has shifted
-across Elixir releases. If you hit a surprising result, [the module's
+Norma leans heavily on the standard library's `URI` module, whose parsing behavior has
+shifted across Elixir releases. If you hit a surprising result, [the module's
 history](https://github.com/elixir-lang/elixir/commits/main/lib/elixir/lib/uri.ex) is usually
 the fastest explanation.
 
