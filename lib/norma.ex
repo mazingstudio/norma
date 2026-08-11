@@ -1,4 +1,20 @@
 defmodule Norma do
+  @moduledoc """
+  URL normalization.
+
+  `Norma` parses a URL string and rewrites it into a canonical form,
+  defaulting the scheme to `http` and applying the transformations
+  requested through the options map.
+
+  Two entry points are provided:
+
+  - `normalize_if_valid/2` — returns `{:ok, url}` or `{:error, reason}`.
+  - `normalize/2` — returns the normalized URL, or the input unchanged
+    when it isn't a URL.
+
+  See `normalize_if_valid/2` for the list of supported options.
+  """
+
   alias Norma.{Normalizer}
 
   @doc """
@@ -20,8 +36,9 @@ defmodule Norma do
       {:ok, "http://mazing.studio"}
 
   """
+  @spec normalize_if_valid(String.t(), map()) :: {:ok, String.t()} | {:error, String.t()}
   def normalize_if_valid(url, options \\ %{}) do
-    if is_url?(url) do
+    if valid_url?(url) do
       normalized_url =
         url
         |> safe_parse
@@ -42,6 +59,7 @@ defmodule Norma do
       iex> Norma.normalize!("//www.mazing.studio", %{remove_www: true})
       "http://mazing.studio"
   """
+  @spec normalize(String.t(), map()) :: String.t()
   def normalize(url, options \\ %{}) do
     case normalize_if_valid(url, options) do
       {:ok, normalized_url} -> normalized_url
@@ -83,11 +101,9 @@ defmodule Norma do
   # Helps discard strings that are not URLs, like mailto and javascript links.
   #
   # This sure looks dumb, but a valid host will normally have at least a dot.
-  defp is_url?(url) do
-    cond do
-      String.starts_with?(url, "mailto:") -> false
-      String.starts_with?(url, "javascript:") -> false
-      true -> String.contains?(url, ".")
-    end
+  @non_url_schemes ["mailto:", "javascript:"]
+
+  defp valid_url?(url) do
+    not String.starts_with?(url, @non_url_schemes) and String.contains?(url, ".")
   end
 end
