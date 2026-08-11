@@ -25,6 +25,12 @@ defmodule Norma.Utils do
   default-port removal. If normalize returns `{:error, _, _}`, the
   pre-normalization string is returned unchanged.
 
+  One deliberate deviation from RFC 3986 §6.2.3: when the input had no path,
+  the `/` that normalization adds is stripped back off, so `example.com`
+  renders as `http://example.com` rather than `http://example.com/`. This keeps
+  the `add_trailing_slash`, `add_root_path` and `force_root_path` options
+  meaningful.
+
   Default ports (80/443/21) are omitted by `URI.to_string/1` and
   `:uri_string.normalize/1` according to scheme. Non-default ports including
   8080 are preserved.
@@ -55,7 +61,9 @@ defmodule Norma.Utils do
       }
       |> URI.to_string()
 
-    rfc_normalize(rendered)
+    rendered
+    |> rfc_normalize()
+    |> restore_empty_path(url.path)
   end
 
   #####################
@@ -73,6 +81,20 @@ defmodule Norma.Utils do
 
   defp remove_authority_marker("//" <> rest), do: rest
   defp remove_authority_marker(url), do: url
+
+  # RFC 3986 §6.2.3 says an empty path on a hierarchical URI normalizes to "/",
+  # and `:uri_string.normalize/1` does exactly that. Norma deliberately deviates:
+  # if the caller's URI had no path, the added slash is stripped back off, so
+  # `add_trailing_slash`, `add_root_path` and `force_root_path` stay meaningful
+  # instead of being pre-empted by normalization.
+  defp restore_empty_path(normalized, path) when path in [nil, ""] do
+    case URI.new(normalized) do
+      {:ok, %URI{path: "/"} = uri} -> URI.to_string(%{uri | path: nil})
+      _ -> normalized
+    end
+  end
+
+  defp restore_empty_path(normalized, _path), do: normalized
 
   defp rfc_normalize(url) do
     case :uri_string.normalize(url) do

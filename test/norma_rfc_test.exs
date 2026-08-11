@@ -35,9 +35,9 @@ defmodule NormaRfcTest do
     end
 
     test "8080 survives end-to-end through Norma.normalize/1" do
-      assert Norma.normalize("http://example.com:8080") == "http://example.com:8080/"
-      assert Norma.normalize("//example.com:8080") == "http://example.com:8080/"
-      assert Norma.normalize("example.com:8080") == "http://example.com:8080/"
+      assert Norma.normalize("http://example.com:8080") == "http://example.com:8080"
+      assert Norma.normalize("//example.com:8080") == "http://example.com:8080"
+      assert Norma.normalize("example.com:8080") == "http://example.com:8080"
     end
 
     test "dot segments and host fold through Norma.normalize/1" do
@@ -68,9 +68,20 @@ defmodule NormaRfcTest do
       assert Utils.form_url(uri) == "http://example.com:8080/path"
     end
 
-    test "empty path becomes / for http(s) after normalize (RFC scheme-based)" do
-      assert form("http://example.com") == "http://example.com/"
-      assert form("https://example.com") == "https://example.com/"
+    # D7 = option B: RFC 3986 §6.2.3 would normalize an empty path to "/",
+    # but Norma strips it back so the path-shaping options stay meaningful.
+    test "empty path stays empty (deliberate deviation from RFC 3986 6.2.3)" do
+      assert form("http://example.com") == "http://example.com"
+      assert form("https://example.com") == "https://example.com"
+      assert form("http://example.com?a=1") == "http://example.com?a=1"
+      assert form("http://example.com#frag") == "http://example.com#frag"
+      assert Norma.normalize("example.com") == "http://example.com"
+    end
+
+    test "an explicit root path is still preserved" do
+      assert form("http://example.com/") == "http://example.com/"
+      assert Norma.normalize("example.com", %{add_trailing_slash: true}) == "http://example.com/"
+      assert Norma.normalize("example.com/a/b", %{force_root_path: true}) == "http://example.com/"
     end
   end
 
