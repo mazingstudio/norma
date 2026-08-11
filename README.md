@@ -1,10 +1,11 @@
 # Norma
 
-[![Hex.pm](https://img.shields.io/hexpm/v/norma.svg?style=flat-square)](https://hex.pm/packages/norma)
-[![Hexdocs](https://img.shields.io/badge/hex-docs-purple.svg?style=flat-square)](https://hexdocs.pm/norma)
-[![Downloads](https://img.shields.io/hexpm/dt/norma.svg?style=flat-square)](https://hex.pm/packages/norma)
-[![License](https://img.shields.io/hexpm/l/norma.svg?style=flat-square)](https://github.com/mazingstudio/norma/blob/master/LICENSE)
-[![CI](https://img.shields.io/github/actions/workflow/status/mazingstudio/norma/ci.yml?branch=master&style=flat-square)](https://github.com/mazingstudio/norma/actions)
+[![Hex.pm](https://img.shields.io/hexpm/v/norma.svg?style=flat-square)]()
+[![Hex.pm](https://img.shields.io/hexpm/l/norma.svg?style=flat-square)]()
+[![Hex.pm](https://img.shields.io/hexpm/dt/norma.svg?style=flat-square)]()
+[![Maintenance](https://img.shields.io/maintenance/yes/2020.svg?style=flat-square)]()
+[![GitHub issues](https://img.shields.io/github/issues/zuraguerra/dumballah.svg?style=flat-square)](https://github.com/mazingstudio/norma/issues)
+[![Travis](https://img.shields.io/travis/mazingstudio/norma.svg)]()
 
 Normalize URLs to the format you need.
 
@@ -15,18 +16,15 @@ Add `Norma` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:norma, "~> 1.9"}
+    # get always the latest ñ___ñ
+    {:norma, ">= 0.0.0"}
   ]
 end
 ```
 
-Documentation is on [HexDocs](https://hexdocs.pm/norma).
-
 ### Note on compatibility
 
-Norma requires Elixir `~> 1.11` and is tested against Elixir 1.13 through 1.19.
-
-It leans heavily on the standard library's `URI` module, whose parsing behavior has shifted across Elixir releases. If you hit a surprising result, [the module's history](https://github.com/elixir-lang/elixir/commits/main/lib/elixir/lib/uri.ex) is usually the fastest explanation.
+Norma depends heavily on the implementation of the `URI` module (part of the standard library), which was recently changed when adding [support for Erlang 20](https://github.com/elixir-lang/elixir/issues/5851). Use [the module history](https://github.com/elixir-lang/elixir/commits/master/lib/elixir/lib/uri.ex) as a guide if you encounter any weird error (specially if you suspect it's related to a regex).
 
 ## Usage
 
@@ -75,7 +73,6 @@ iex> Norma.normalize("//www.mazing.studio:1337/test#test", options)
   ```elixir
   iex> Norma.normalize("https://www.mazing.studio", %{remove_www: true})
   > "https://mazing.studio"
-  ```
 
 - Downcase host:
   ```elixir
