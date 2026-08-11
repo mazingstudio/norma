@@ -4,7 +4,6 @@
 [![Hexdocs](https://img.shields.io/badge/hex-docs-purple.svg?style=flat-square)](https://hexdocs.pm/norma)
 [![Downloads](https://img.shields.io/hexpm/dt/norma.svg?style=flat-square)](https://hex.pm/packages/norma)
 [![License](https://img.shields.io/hexpm/l/norma.svg?style=flat-square)](https://github.com/mazingstudio/norma/blob/master/LICENSE)
-[![CI](https://img.shields.io/github/actions/workflow/status/mazingstudio/norma/ci.yml?branch=master&style=flat-square)](https://github.com/mazingstudio/norma/actions)
 
 Normalize URLs to the format you need.
 
