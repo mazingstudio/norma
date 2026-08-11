@@ -1,13 +1,14 @@
 defmodule Norma.Mixfile do
   use Mix.Project
 
-  @version "1.9.0"
+  @version "2.0.0"
 
   def project do
     [
       app: :norma,
       version: @version,
-      elixir: "~> 1.11",
+      # 1.13+ required: D5 uses URI.new/1 (added in Elixir 1.13).
+      elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
       description: description(),
       package: package(),
@@ -16,7 +17,7 @@ defmodule Norma.Mixfile do
       source_url: "https://github.com/mazingstudio/norma",
       docs: [
         main: "Norma",
-        extras: ["CHANGELOG.md"]
+        extras: ["CHANGELOG.md", "docs/migrating-to-2.0.md"]
       ]
     ]
   end
