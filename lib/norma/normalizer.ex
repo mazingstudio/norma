@@ -91,8 +91,9 @@ defmodule Norma.Normalizer do
     |> reduce_normalize(options |> Map.drop([:downcase_host]))
   end
 
-  # If the URL elements are valid now, forms a string.
-  defp reduce_normalize(url, %{}), do: url |> Utils.form_url()
+  # If the URL elements are valid now, forms a string. Remaining options
+  # (e.g. `restore_old_query_behavior`) are consumed by `form_url/2`.
+  defp reduce_normalize(url, options), do: Utils.form_url(url, options)
 
   defp add_blank_scheme(url), do: %{url | scheme: ""}
 

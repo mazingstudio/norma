@@ -84,6 +84,24 @@ defmodule NormaQuery20Test do
     end
   end
 
+  describe "restore_old_query_behavior through the public API" do
+    test "default preserves order and duplicates" do
+      assert Norma.normalize("http://a.com/p?b=2&a=1&b=3") == "http://a.com/p?b=2&a=1&b=3"
+    end
+
+    test "opt-in restores the 1.x sort + dedupe" do
+      assert Norma.normalize("http://a.com/p?b=2&a=1&b=3", %{restore_old_query_behavior: true}) ==
+               "http://a.com/p?a=1&b=3"
+    end
+
+    test "composes with other options" do
+      assert Norma.normalize("http://www.a.com/p?b=2&a=1", %{
+               remove_www: true,
+               restore_old_query_behavior: true
+             }) == "http://a.com/p?a=1&b=2"
+    end
+  end
+
   defp form(url) when is_binary(url), do: url |> URI.parse() |> Utils.form_url()
 
   defp normalize_string!(url) do

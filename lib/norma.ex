@@ -27,6 +27,9 @@ defmodule Norma do
   - `add_trailing_slash`
   - `remove_www`
   - `downcase_host`
+  - `restore_old_query_behavior` — rebuild the query the 1.x way (keys sorted,
+    duplicate keys collapsed to the last value) instead of preserving input
+    order and duplicates
 
   Check the README for the full examples.
 
