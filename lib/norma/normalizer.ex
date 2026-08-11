@@ -4,7 +4,8 @@ defmodule Norma.Normalizer do
 
   Called by `Norma` after validation and `URI.parse/1`. Options match the
   public `Norma.normalize/2` API (`remove_fragment`, `force_root_path`,
-  `add_trailing_slash`, `remove_www`, `downcase_host`, `remove_scheme`).
+  `add_root_path`, `add_trailing_slash`, `remove_www`, `downcase_host`,
+  `remove_scheme`).
   """
 
   alias Norma.Utils
@@ -12,6 +13,7 @@ defmodule Norma.Normalizer do
   @type option_key ::
           :remove_fragment
           | :force_root_path
+          | :add_root_path
           | :add_trailing_slash
           | :remove_www
           | :downcase_host
@@ -24,6 +26,7 @@ defmodule Norma.Normalizer do
 
     - `remove_fragment`
     - `force_root_path`
+    - `add_root_path`
     - `add_trailing_slash`
     - `remove_www`
     - `downcase_host`
@@ -61,15 +64,27 @@ defmodule Norma.Normalizer do
     |> reduce_normalize(options |> Map.drop([:remove_fragment]))
   end
 
-  # Forces path to be "/".
-  defp reduce_normalize(url = %URI{path: path}, options = %{force_root_path: true})
-       when path != "/" do
+  # Forces path to "/" and wipes query + fragment (issue #7 / 2.0 D4).
+  defp reduce_normalize(url, options = %{force_root_path: true}) do
     url
-    |> force_root_path
+    |> force_root_path()
     |> reduce_normalize(options |> Map.drop([:force_root_path]))
   end
 
-  # Adds a trailing slash to the path unless it's already "/" or has an extension
+  # Additive: set path to "/" only when path is nil or empty (issue #7 / 2.0 D4).
+  defp reduce_normalize(url = %URI{path: path}, options = %{add_root_path: true})
+       when path in [nil, ""] do
+    url
+    |> add_root_path()
+    |> reduce_normalize(options |> Map.drop([:add_root_path]))
+  end
+
+  defp reduce_normalize(url, options = %{add_root_path: true}) do
+    reduce_normalize(url, options |> Map.drop([:add_root_path]))
+  end
+
+  # Adds a trailing slash to the path unless it's already "/" or the final
+  # segment looks like a file (contains a ".").
   defp reduce_normalize(url = %URI{path: path}, options = %{add_trailing_slash: true})
        when path != "/" do
     url
@@ -102,13 +117,35 @@ defmodule Norma.Normalizer do
 
   defp remove_fragment(url), do: %{url | fragment: nil}
 
-  defp force_root_path(url), do: %{url | path: "/"}
+  defp force_root_path(url), do: %{url | path: "/", query: nil, fragment: nil}
+
+  defp add_root_path(url), do: %{url | path: "/"}
 
   defp add_trailing_slash(url = %URI{path: path}) do
-    if path && (String.contains?(path, ".") || String.ends_with?(path, "/")) do
-      url
-    else
-      %{url | path: "#{path}/"}
+    cond do
+      is_nil(path) ->
+        %{url | path: "/"}
+
+      String.ends_with?(path, "/") ->
+        url
+
+      final_segment_has_dot?(path) ->
+        url
+
+      true ->
+        %{url | path: path <> "/"}
+    end
+  end
+
+  # Skip trailing slash only when the *final* path segment contains a dot
+  # (file-like). Intermediate dotted segments (e.g. /v1.2/docs) do not block.
+  defp final_segment_has_dot?(path) do
+    path
+    |> String.split("/", trim: true)
+    |> List.last()
+    |> case do
+      nil -> false
+      segment -> String.contains?(segment, ".")
     end
   end
 
