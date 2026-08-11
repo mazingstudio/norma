@@ -1,0 +1,116 @@
+defmodule NormaGoldenTest do
+  @moduledoc """
+  Golden characterization suite for `Norma.normalize/2`.
+
+  Asserts exact string outputs **as they are today**, including known quirks
+  and bugs. This is the safety net for non-breaking modernization work.
+
+  Do not "fix" expectations here when behavior is intentional-to-preserve;
+  only update after an intentional, reviewed behavioral change.
+  """
+  use ExUnit.Case, async: true
+
+  # {description, input, options, expected_output_today}
+  @corpus [
+    {"http bare", "http://example.com", %{}, "http://example.com"},
+    {"https bare", "https://example.com", %{}, "https://example.com"},
+    {"ftp scheme", "ftp://example.com", %{}, "ftp://example.com"},
+    {"ws scheme", "ws://example.com", %{}, "ws://example.com"},
+    {"wss scheme", "wss://example.com", %{}, "wss://example.com"},
+    {"custom scheme", "custom://example.com/x", %{}, "custom://example.com/x"},
+    {"no scheme host", "example.com", %{}, "http://example.com"},
+    {"no scheme path", "example.com/path", %{}, "http://example.com/path"},
+    {"scheme-relative", "//example.com", %{}, "http://example.com"},
+    {"scheme-relative port 443", "//example.com:443", %{}, "https://example.com"},
+    {"scheme-relative port 80", "//example.com:80", %{}, "http://example.com"},
+    {"scheme-relative port 8080", "//example.com:8080", %{}, "http://example.com"},
+    {"scheme-relative port 21", "//example.com:21", %{}, "ftp://example.com"},
+    {"scheme-relative port 1337", "//example.com:1337", %{}, "http://example.com:1337"},
+    {"remove_scheme https", "https://example.com", %{remove_scheme: true}, "example.com"},
+    {"remove_scheme with path", "https://example.com/x", %{remove_scheme: true}, "example.com/x"},
+    {"explicit http port 80", "http://example.com:80", %{}, "http://example.com"},
+    {"explicit https port 443", "https://example.com:443", %{}, "https://example.com"},
+    {"nonstandard port", "http://example.com:3000", %{}, "http://example.com:3000"},
+    {"port with path", "http://example.com:3000/dir", %{}, "http://example.com:3000/dir"},
+    {"host:port no scheme", "example.com:3000", %{}, "http://example.com:3000"},
+    {"host:port path no scheme", "example.com:3000/dir", %{}, "http://example.com:3000/dir"},
+    {"host:21 infers ftp", "example.com:21", %{}, "ftp://example.com"},
+    {"host:443 no scheme", "example.com:443", %{}, "https://example.com"},
+    {"host:8080 no scheme", "example.com:8080", %{}, "http://example.com"},
+    {"simple query", "http://example.com?a=1", %{}, "http://example.com?a=1"},
+    {"sorted query keys", "http://example.com?b=2&a=1", %{}, "http://example.com?a=1&b=2"},
+    {"dup query keys last wins", "http://example.com?a=1&a=2&b=3", %{}, "http://example.com?a=2&b=3"},
+    {"dup query keys reverse", "http://example.com?a=2&a=1", %{}, "http://example.com?a=1"},
+    {"empty query value", "http://example.com?a=", %{}, "http://example.com?a="},
+    {"empty query key", "http://example.com?=x", %{}, "http://example.com?=x"},
+    {"query plus spaces", "http://example.com?q=foo+bar", %{}, "http://example.com?q=foo+bar"},
+    {"query encoded space", "http://example.com?q=foo%20bar", %{}, "http://example.com?q=foo+bar"},
+    {"query special chars", "http://example.com?b=foo's+bar&a=joe+smith", %{}, "http://example.com?a=joe+smith&b=foo%27s+bar"},
+    {"query unicode n-tilde", "http://example.com?dogs_allowed=ño", %{}, "http://example.com?dogs_allowed=%C3%B1o"},
+    {"query only", "http://example.com?", %{}, "http://example.com?"},
+    {"query and fragment order", "http://example.com?b=2&a=1#top", %{}, "http://example.com?a=1&b=2#top"},
+    {"fragment only", "http://example.com#section", %{}, "http://example.com#section"},
+    {"fragment empty", "http://example.com#", %{}, "http://example.com#"},
+    {"fragment with path", "http://example.com/path#frag", %{}, "http://example.com/path#frag"},
+    {"remove_fragment true", "http://example.com/path#frag", %{remove_fragment: true}, "http://example.com/path"},
+    {"remove_fragment false", "http://example.com/path#frag", %{remove_fragment: false}, "http://example.com/path#frag"},
+    {"empty path", "http://example.com", %{}, "http://example.com"},
+    {"root path", "http://example.com/", %{}, "http://example.com/"},
+    {"path no slash", "http://example.com/foo", %{}, "http://example.com/foo"},
+    {"path trailing slash", "http://example.com/foo/", %{}, "http://example.com/foo/"},
+    {"nested path", "http://example.com/a/b/c", %{}, "http://example.com/a/b/c"},
+    {"double slash path", "http://example.com//a", %{}, "http://example.com//a"},
+    {"dot segments", "http://example.com/a/./b/../c", %{}, "http://example.com/a/./b/../c"},
+    {"add_trailing_slash bare", "http://example.com", %{add_trailing_slash: true}, "http://example.com/"},
+    {"add_trailing_slash path", "http://example.com/test", %{add_trailing_slash: true}, "http://example.com/test/"},
+    {"add_trailing_slash already", "http://example.com/test/", %{add_trailing_slash: true}, "http://example.com/test/"},
+    {"add_trailing_slash file", "http://example.com/sitemap.xml", %{add_trailing_slash: true}, "http://example.com/sitemap.xml"},
+    {"add_trailing_slash file frag", "http://example.com/top.html#faqs?p=2", %{add_trailing_slash: true}, "http://example.com/top.html#faqs?p=2"},
+    {"add_trailing_slash frag query weird", "http://example.com/test#faqs?page=2", %{add_trailing_slash: true}, "http://example.com/test/#faqs?page=2"},
+    {"force_root_path", "http://example.com/foo/bar", %{force_root_path: true}, "http://example.com/"},
+    {"force_root_path already", "http://example.com/", %{force_root_path: true}, "http://example.com/"},
+    {"www keep", "https://www.example.com", %{}, "https://www.example.com"},
+    {"www remove", "https://www.example.com", %{remove_www: true}, "https://example.com"},
+    {"www remove with path", "https://www.example.com/x", %{remove_www: true}, "https://example.com/x"},
+    {"www false", "https://www.example.com", %{remove_www: false}, "https://www.example.com"},
+    {"WWW uppercase prefix with remove_www", "https://WWW.example.com", %{remove_www: true}, "https://WWW.example.com"},
+    {"upcase host default", "HTTP://EXAMPLE.COM/DIR?PAGE=2", %{}, "http://EXAMPLE.COM/DIR?PAGE=2"},
+    {"downcase_host true", "HTTP://EXAMPLE.COM/DIR?PAGE=2", %{downcase_host: true}, "http://example.com/DIR?PAGE=2"},
+    {"downcase_host false", "HTTP://EXAMPLE.COM/DIR?PAGE=2", %{downcase_host: false}, "http://EXAMPLE.COM/DIR?PAGE=2"},
+    {"mailto", "mailto:joe@example.com", %{}, "mailto:joe@example.com"},
+    {"mailto no at", "mailto:joe", %{}, "mailto:joe"},
+    {"javascript", "javascript:alert('hey')", %{}, "javascript:alert('hey')"},
+    {"javascript void", "javascript:void(0)", %{}, "javascript:void(0)"},
+    {"idn unicode host", "http://münchen.de", %{}, "http://münchen.de"},
+    {"idn punycode host", "http://xn--mnchen-3ya.de", %{}, "http://xn--mnchen-3ya.de"},
+    {"idn path cafe", "http://example.com/café", %{}, "http://example.com/café"},
+    {"idn query cafe", "http://example.com?q=café", %{}, "http://example.com?q=caf%C3%A9"},
+    {"userinfo user", "http://user@example.com", %{}, "http://example.com"},
+    {"userinfo user pass", "http://user:pass@example.com", %{}, "http://example.com"},
+    {"userinfo with port 8080 masked", "http://user:pass@example.com:8080/path", %{}, "http://example.com/path"},
+    {"userinfo with port 3000", "http://user:pass@example.com:3000/path", %{}, "http://example.com:3000/path"},
+    {"userinfo https", "https://user@example.com/x", %{}, "https://example.com/x"},
+    {"empty string", "", %{}, ""},
+    {"dot only", ".", %{}, "http://."},
+    {"space", " ", %{}, " "},
+    {"not url word", "example", %{}, "example"},
+    {"ip host", "http://127.0.0.1", %{}, "http://127.0.0.1"},
+    {"ip host port", "http://127.0.0.1:3000", %{}, "http://127.0.0.1:3000"},
+    {"ipv6", "http://[::1]/", %{}, "http://[::1]/"},
+    {"ipv6 port", "http://[::1]:8080", %{}, "http://[::1]:8080"},
+    {"full combo remove_www force_root remove_fragment", "//www.mazing.studio:1337/test#test", %{force_root_path: true, remove_fragment: true, remove_www: true}, "http://mazing.studio:1337/"},
+    {"combo downcase remove_www remove_fragment slash", "HTTPS://WWW.Example.COM:8443/path/to?b=2&a=1#frag", %{add_trailing_slash: true, downcase_host: true, remove_fragment: true, remove_www: true}, "https://www.example.com:8443/path/to/?a=1&b=2"},
+    {"combo remove scheme www fragment", "https://www.example.com/x#y", %{remove_fragment: true, remove_scheme: true, remove_www: true}, "example.com/x"}
+  ]
+
+  for {desc, input, opts, expected} <- @corpus do
+    @desc desc
+    @input input
+    @opts opts
+    @expected expected
+
+    test "golden: #{@desc}" do
+      assert Norma.normalize(@input, @opts) == @expected
+    end
+  end
+end
