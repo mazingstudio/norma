@@ -1,7 +1,7 @@
 defmodule Norma.Mixfile do
   use Mix.Project
 
-  @version "2.0.0"
+  @version "2.0.1"
 
   def project do
     [
@@ -47,7 +47,8 @@ defmodule Norma.Mixfile do
   defp deps do
     [
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.4", only: :dev, runtime: false}
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
+      {:stream_data, "~> 1.1", only: [:dev, :test], runtime: false}
     ]
   end
 end
