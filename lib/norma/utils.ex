@@ -1,77 +1,57 @@
 defmodule Norma.Utils do
-  @masked_ports ["443", "80", "8080", "21"]
+  @moduledoc false
 
-  def port_handler(port) do
-    case port do
-      443 -> "https"
-      80 -> "http"
-      8080 -> "http"
-      21 -> "ftp"
-      _ -> "http"
-    end
-  end
+  # Ports that are never rendered back into the normalized URL.
+  @masked_ports [443, 80, 8080, 21]
+
+  def port_handler(443), do: "https"
+  def port_handler(80), do: "http"
+  def port_handler(8080), do: "http"
+  def port_handler(21), do: "ftp"
+  def port_handler(_port), do: "http"
 
   @doc """
-  At first, I tried to do this with just the standard library
-  ```
-  "mazing.studio"
-  |> URI.parse
-  |> Map.put(:scheme, "http")
-  |> URI.to_string
+  Renders a `%URI{}` back into a string.
 
-  > "http:mazing.studio"
-  ```
-  but the result wasn't what I expected.
+  Delegates to `URI.to_string/1` after Norma-specific adjustments:
 
-  Help would be appreciated here to solve it better.
+    * masked ports (443, 80, 8080, 21) are dropped, so `google.com:8080`
+      normalizes to `http://google.com`;
+    * the query string is round-tripped through `URI.decode_query/1` and
+      `URI.encode_query/1` so it comes out percent-encoded and key-sorted;
+    * userinfo is discarded.
+
+  A blank scheme (set by the `remove_scheme` option) is rendered without the
+  leading `//` that `URI.to_string/1` emits for a scheme-less URI.
   """
-  def form_url(%URI{
-        host: host,
-        path: path,
-        scheme: scheme,
-        query: query,
-        port: port,
-        fragment: fragment
-      }) do
-    # "http://"
-    form_scheme(scheme)
-    # "http://google.com"
-    |> safe_concat(host)
-    # "http://google.com:1337"
-    |> Kernel.<>(form_port(port |> to_string))
-    # "http://google.com:1337/test"
-    |> safe_concat(path)
-    # "http://google.com:1337/test?dogs_allowed=ño"
-    |> Kernel.<>(form_query(query))
-    # "http://google.com:1337/test?dogs_allowed=ño#cats"
-    |> Kernel.<>(form_fragment(fragment))
+  def form_url(%URI{scheme: scheme} = url) do
+    %{
+      url
+      | scheme: nil,
+        authority: nil,
+        userinfo: nil,
+        port: form_port(url.port),
+        query: form_query(url.query)
+    }
+    |> URI.to_string()
+    |> remove_authority_marker()
+    |> prepend_scheme(scheme)
   end
 
   #####################
   # Private functions #
   #####################
 
-  defp form_scheme(""), do: ""
-  defp form_scheme(scheme), do: scheme <> "://"
+  defp form_port(port) when port in @masked_ports, do: nil
+  defp form_port(port), do: port
 
-  defp form_fragment(nil), do: ""
-  defp form_fragment(fragment), do: "#" <> fragment
+  defp form_query(nil), do: nil
+  defp form_query(query), do: query |> URI.decode_query() |> URI.encode_query()
 
-  defp form_query(nil), do: ""
+  defp remove_authority_marker("//" <> rest), do: rest
+  defp remove_authority_marker(url), do: url
 
-  defp form_query(query), do: "?" <> (query |> URI.decode_query() |> URI.encode_query())
-
-  defp form_port(""), do: ""
-
-  defp form_port(port)
-       when port in @masked_ports,
-       do: ""
-
-  defp form_port(port), do: ":" <> port
-
-  defp safe_concat(left, right) do
-    left = left || ""
-    right = right || ""
-    left <> right
-  end
+  defp prepend_scheme(url, nil), do: url
+  defp prepend_scheme(url, ""), do: url
+  defp prepend_scheme(url, scheme), do: scheme <> "://" <> url
 end

@@ -1,5 +1,23 @@
 defmodule Norma.Normalizer do
+  @moduledoc """
+  Applies option-driven normalization steps to a parsed `%URI{}`.
+
+  Called by `Norma` after validation and `URI.parse/1`. Options match the
+  public `Norma.normalize/2` API (`remove_fragment`, `force_root_path`,
+  `add_trailing_slash`, `remove_www`, `downcase_host`, `remove_scheme`).
+  """
+
   alias Norma.Utils
+
+  @type option_key ::
+          :remove_fragment
+          | :force_root_path
+          | :add_trailing_slash
+          | :remove_www
+          | :downcase_host
+          | :remove_scheme
+
+  @type options :: %{optional(option_key()) => boolean()}
 
   @doc """
   Normalizes the given `url`, accepts the following options:
@@ -10,6 +28,7 @@ defmodule Norma.Normalizer do
     - `remove_www`
     - `downcase_host`
   """
+  @spec normalize(URI.t(), options()) :: String.t()
   def normalize(url, options \\ %{}), do: reduce_normalize(url, options)
 
   #####################
@@ -75,20 +94,20 @@ defmodule Norma.Normalizer do
   # If the URL elements are valid now, forms a string.
   defp reduce_normalize(url, %{}), do: url |> Utils.form_url()
 
-  defp add_blank_scheme(url), do: url |> Map.put(:scheme, "")
+  defp add_blank_scheme(url), do: %{url | scheme: ""}
 
   defp infer_scheme(url = %URI{port: port}),
-    do: url |> Map.put(:scheme, Utils.port_handler(port))
+    do: %{url | scheme: Utils.port_handler(port)}
 
-  defp remove_fragment(url), do: url |> Map.put(:fragment, nil)
+  defp remove_fragment(url), do: %{url | fragment: nil}
 
-  defp force_root_path(url), do: url |> Map.put(:path, "/")
+  defp force_root_path(url), do: %{url | path: "/"}
 
   defp add_trailing_slash(url = %URI{path: path}) do
     if path && (String.contains?(path, ".") || String.ends_with?(path, "/")) do
       url
     else
-      url |> Map.put(:path, "#{path}/")
+      %{url | path: "#{path}/"}
     end
   end
 
@@ -96,17 +115,15 @@ defmodule Norma.Normalizer do
   # the host info in `:path`.
   defp remove_www(url = %URI{host: host, path: path})
        when is_nil(host) and path != nil do
-    url
-    |> Map.put(:host, parse_host(path))
-    |> Map.put(:path, nil)
+    %{url | host: parse_host(path), path: nil}
   end
 
   defp remove_www(url = %URI{host: host}),
-    do: url |> Map.put(:host, parse_host(host))
+    do: %{url | host: parse_host(host)}
 
   defp parse_host(host), do: host |> String.trim_leading("www.")
 
   defp downcase_host(url) do
-    Map.put(url, :host, String.downcase(url.host))
+    %{url | host: String.downcase(url.host)}
   end
 end
