@@ -5,8 +5,8 @@ defmodule Norma.Mixfile do
     [
       app: :norma,
       version: "1.8.4",
-      elixir: "~> 1.3",
-      start_permanent: Mix.env == :prod,
+      elixir: "~> 1.11",
+      start_permanent: Mix.env() == :prod,
       description: description(),
       package: package(),
       deps: deps(),
