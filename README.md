@@ -67,9 +67,13 @@ Options are a map. Every key defaults to `false`, and any subset may be combined
 | `remove_scheme: true` | Drops `http://` / `https://` from the output |
 | `remove_fragment: true` | Drops everything from `#` onward |
 | `remove_www: true` | Drops a leading `www.` from the host |
-| `downcase_host: true` | Lowercases the host only; the path keeps its case |
-| `add_trailing_slash: true` | Appends `/` to the path when it does not look like a file |
-| `force_root_path: true` | Replaces the path with `/` |
+| `add_trailing_slash: true` | Appends `/` to the path when the final segment is not file-like |
+| `force_root_path: true` | Replaces the path with `/` and clears query + fragment |
+| `add_root_path: true` | Sets path to `/` only when path is empty |
+| `restore_old_query_behavior: true` | 1.x query sort + last-wins dedupe |
+
+Host case is always lowercased (RFC 3986 normalize). The 1.x `downcase_host`
+option was removed in 2.0 — see [Migrating to 2.0](docs/migrating-to-2.0.md).
 
 ```elixir
 iex> Norma.normalize("https://example.com", %{remove_scheme: true})
@@ -81,7 +85,7 @@ iex> Norma.normalize("https://example.com#faqs", %{remove_fragment: true})
 iex> Norma.normalize("https://www.example.com", %{remove_www: true})
 "https://example.com"
 
-iex> Norma.normalize("https://EXAMPLE.COM/FAQS", %{downcase_host: true})
+iex> Norma.normalize("https://EXAMPLE.COM/FAQS")
 "https://example.com/FAQS"
 
 iex> Norma.normalize("https://example.com/docs", %{add_trailing_slash: true})
@@ -98,15 +102,21 @@ iex> Norma.normalize("//www.example.com:1337/test#test",
 ### Behavior worth knowing before you rely on it
 
 - A scheme-less input is assumed to be `http`. Norma never upgrades to `https`.
-- Ports `80`, `443`, `8080` and `21` are stripped from the output regardless of scheme.
-- `force_root_path` replaces the path only; an existing query and fragment survive it.
-- Query parameters are sorted alphabetically and duplicate keys are collapsed, so
-  `?tag=a&tag=b` does not round-trip.
-- `add_trailing_slash` reads any `.` in the path as a file extension, so `/v1.2/docs` is left
-  without a slash.
+- Output is RFC 3986 normalized: dot segments are resolved (`/a/../b` → `/b`), the host is
+  lowercased, percent-encoding is normalized, and the port is dropped only when it is the
+  scheme's default (`https://…:443` loses it, `http://…:443` keeps it). `8080` is never
+  stripped.
+- Query parameters keep their input order and duplicate keys, so `?tag=a&tag=b` round-trips.
+  Pass `restore_old_query_behavior: true` for the 1.x sort-and-dedupe.
+- `force_root_path` replaces the path **and** clears query and fragment.
+- `add_trailing_slash` looks for a `.` in the final path segment only, so `/v1.2/docs` gets
+  its slash.
+- An input with no path stays pathless (`http://example.com`, not `http://example.com/`),
+  a deliberate deviation from RFC 3986 §6.2.3 that keeps `add_trailing_slash`,
+  `add_root_path` and `force_root_path` meaningful.
 
-These are the behaviors of the `1.x` line, pinned by the test suite as-is. They are queued to
-change in `2.0`.
+Every behavior above is pinned by the golden suite. See
+[Migrating to 2.0](docs/migrating-to-2.0.md) for what changed since `1.x`.
 
 ### With Ecto
 

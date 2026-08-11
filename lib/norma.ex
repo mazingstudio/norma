@@ -24,9 +24,16 @@ defmodule Norma do
   ## Options
   - `remove_fragment`
   - `force_root_path`
+  - `add_root_path`
   - `add_trailing_slash`
   - `remove_www`
-  - `downcase_host`
+  - `remove_scheme`
+  - `restore_old_query_behavior` — rebuild the query the 1.x way (keys sorted,
+    duplicate keys collapsed to the last value) instead of preserving input
+    order and duplicates
+
+  Host case is always folded to lowercase via RFC 3986 normalization
+  (`:uri_string.normalize/1`). The 1.x `downcase_host` option was removed in 2.0.
 
   Check the README for the full examples.
 
@@ -39,12 +46,13 @@ defmodule Norma do
   @spec normalize_if_valid(String.t(), map()) :: {:ok, String.t()} | {:error, String.t()}
   def normalize_if_valid(url, options \\ %{}) do
     if valid_url?(url) do
-      normalized_url =
-        url
-        |> safe_parse
-        |> Normalizer.normalize(options)
+      case safe_parse(url) do
+        {:ok, uri} ->
+          {:ok, Normalizer.normalize(uri, options)}
 
-      {:ok, normalized_url}
+        {:error, _} ->
+          {:error, "Not an URL."}
+      end
     else
       {:error, "Not an URL."}
     end
@@ -71,32 +79,39 @@ defmodule Norma do
   # Private functions #
   #####################
 
-  # Solve an issue related to the regex provided by the URI spec
-  # (see https://tools.ietf.org/html/rfc3986#appendix-B).
+  # Parse via `URI.new/1` (Elixir 1.13+): `{:ok, uri} | {:error, part}`.
+  # No raise → no rescue → no re-parse loop between helpers.
   #
-  # If trying to parse from string to %URI{} something like "mazing.studio:80",
-  # the result will be:
-  #   %URI{scheme: "mazing.studio", path: "21", host: nil}
-  #   _(Other keys skipped for brevity, but their value is `nil`.)_
+  # Scheme-less / host-less inputs such as "mazing.studio:80" parse with
+  # `host: nil` under RFC 3986 (scheme swallows the host). The old code
+  # fixed that by mutual recursion between `safe_parse` and
+  # `has_valid_host?`. Here the same `//`-prefix authority hint is applied
+  # **once** as an explicit branch.
   #
-  # But "//mazing.studio:80", will be parsed correctly:
-  #   %URI{host: "mazing.studio", authority: "mazing.studio:80", port: 80}
-  defp safe_parse(url) do
-    url
-    |> URI.parse()
-    |> has_valid_host?
+  # `URI.new/1` rejects some inputs `URI.parse/1` accepted (raw non-ASCII in
+  # the query). Those fall back to a single non-recursive `URI.parse/1` so
+  # existing golden outputs stay byte-identical.
+  defp safe_parse(url) when is_binary(url) do
+    case parse_uri(url) do
+      %URI{host: nil} = uri ->
+        parse_with_authority_hint(uri)
+
+      %URI{} = uri ->
+        {:ok, uri}
+    end
   end
 
-  defp has_valid_host?(url = %URI{host: nil}) do
-    url = url |> URI.to_string()
-
-    ("//" <> url)
-    |> safe_parse
+  defp parse_uri(url) when is_binary(url) do
+    case URI.new(url) do
+      {:ok, uri} -> uri
+      {:error, _} -> URI.parse(url)
+    end
   end
 
-  defp has_valid_host?(url = %URI{host: host})
-       when host != nil,
-       do: url
+  # Single non-recursive retry: prepend "//" so the authority parses as host.
+  defp parse_with_authority_hint(%URI{} = uri) do
+    {:ok, parse_uri("//" <> URI.to_string(uri))}
+  end
 
   # Helps discard strings that are not URLs, like mailto and javascript links.
   #
