@@ -12,8 +12,11 @@ defmodule Norma.Utils do
 
   Delegates to `URI.to_string/1` after Norma-specific adjustments:
 
-    * the query string is round-tripped through `URI.decode_query/1` and
-      `URI.encode_query/1` so it comes out percent-encoded and key-sorted;
+    * the query string is rebuilt from `URI.query_decoder/1` pairs and
+      `URI.encode_query/1`, preserving **input order** and **duplicate keys**;
+    * pass `%{restore_old_query_behavior: true}` as the second argument to
+      restore the 1.x map round-trip (`URI.decode_query/1` → `URI.encode_query/1`),
+      which sorts keys and collapses duplicates (last value wins);
     * userinfo is discarded.
 
   A blank scheme (set by the `remove_scheme` option) is rendered without the
@@ -35,7 +38,9 @@ defmodule Norma.Utils do
   `:uri_string.normalize/1` according to scheme. Non-default ports including
   8080 are preserved.
   """
-  def form_url(%URI{scheme: ""} = url) do
+  def form_url(url, opts \\ %{})
+
+  def form_url(%URI{scheme: ""} = url, opts) when is_map(opts) do
     # `remove_scheme` blanked the scheme; do not run RFC normalize (needs a
     # scheme for default-port rules). Drop only ports that are defaults for
     # some scheme so `https://h` does not become `h:443` after the blank.
@@ -45,22 +50,23 @@ defmodule Norma.Utils do
         authority: nil,
         userinfo: nil,
         port: port_when_schemeless(url.port),
-        query: form_query(url.query)
+        query: form_query(url.query, opts)
     }
     |> URI.to_string()
     |> remove_authority_marker()
   end
 
-  def form_url(%URI{} = url) do
+  def form_url(%URI{} = url, opts) when is_map(opts) do
     rendered =
       %{
         url
         | authority: nil,
           userinfo: nil,
-          query: form_query(url.query)
+          query: form_query(url.query, opts)
       }
       |> URI.to_string()
 
+    # RFC normalize is the final transform (D6); it must not reorder/dedupe query.
     rendered
     |> rfc_normalize()
     |> restore_empty_path(url.path)
@@ -70,8 +76,20 @@ defmodule Norma.Utils do
   # Private functions #
   #####################
 
-  defp form_query(nil), do: nil
-  defp form_query(query), do: query |> URI.decode_query() |> URI.encode_query()
+  defp form_query(nil, _opts), do: nil
+
+  # 1.x compatibility: map round-trip sorts keys and collapses duplicate keys.
+  defp form_query(query, %{restore_old_query_behavior: true}) do
+    query |> URI.decode_query() |> URI.encode_query()
+  end
+
+  # Default (2.0): preserve pair order and multi-value keys.
+  defp form_query(query, _opts) do
+    query
+    |> URI.query_decoder()
+    |> Enum.to_list()
+    |> URI.encode_query()
+  end
 
   # Ports that are the default for at least one scheme `port_handler/1` knows
   # about. Used only on the blank-scheme path where `:uri_string` cannot apply
