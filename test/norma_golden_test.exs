@@ -91,10 +91,9 @@ defmodule NormaGoldenTest do
      "https://www.example.com"},
     {"upcase host default", "HTTP://EXAMPLE.COM/DIR?PAGE=2", %{},
      "http://example.com/DIR?PAGE=2"},
-    # D8: downcase_host option removed; D6 always folds host case
-    {"downcase_host true", "HTTP://EXAMPLE.COM/DIR?PAGE=2", %{},
-     "http://example.com/DIR?PAGE=2"},
-    {"downcase_host false", "HTTP://EXAMPLE.COM/DIR?PAGE=2", %{},
+    # D8: the `downcase_host` option was removed in 2.0 — D6 always folds host
+    # case, so its two former rows collapsed into "upcase host default" above.
+    {"mixed-case host with path and query", "hTtP://ExAmPlE.CoM/DIR?PAGE=2", %{},
      "http://example.com/DIR?PAGE=2"},
     {"mailto", "mailto:joe@example.com", %{}, "mailto:joe@example.com"},
     {"mailto no at", "mailto:joe", %{}, "mailto:joe"},

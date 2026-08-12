@@ -55,6 +55,25 @@ Documentation is on [HexDocs](https://hexdocs.pm/norma).
 Full list with before/after strings: [Migrating to 2.0](docs/migrating-to-2.0.md) and the
 [CHANGELOG](CHANGELOG.md).
 
+### Upgrading from 1.x in five minutes
+
+Most upgrades are a no-op. Work down this list; if none of the symptoms apply to your
+code, `{:norma, "~> 2.0"}` is a drop-in.
+
+| If you… | You'll see | Do this |
+| --- | --- | --- |
+| store or compare normalized URLs | stored `1.x` strings no longer equal fresh output | re-normalize the column once, or compare through `Norma.normalize/1` on both sides |
+| pass `downcase_host:` | `KeyError`-free but silently ignored; the option is gone | delete it — the host is always lowercased now |
+| rely on `:8080` being stripped | the port survives | strip it yourself, or use the scheme's default port |
+| compare query strings byte-for-byte | pairs keep input order and duplicates | pass `%{restore_old_query_behavior: true}` to get `1.x` sorting back |
+| use `force_root_path` | query and fragment are now cleared too | use `add_root_path` if you only wanted a `/` on empty paths |
+| have paths with a dot in a middle segment (`/v1.2/docs`) | `add_trailing_slash` now applies | nothing, unless you depended on the old miss |
+| run Elixir < 1.13 | won't compile | stay on `{:norma, "~> 1.9"}` |
+
+Two things that did **not** change, both machine-checked by the test suite: a URL with no
+path stays pathless (`http://example.com`, not `.../`), and `normalize/2` is idempotent —
+normalizing an already-normalized URL returns it unchanged.
+
 ### Note on compatibility
 
 Norma leans heavily on the standard library's `URI` module, whose parsing behavior has

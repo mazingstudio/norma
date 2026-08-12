@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-08-11
+
+No behavior changes. Documentation and test coverage only.
+
+### Added
+
+- Property-based test suite (`stream_data`) covering the two assumptions 2.0 rests
+  on: the empty-path deviation from `:uri_string.normalize/1` is limited to the root
+  path and nothing else, and `normalize/2` is idempotent (including under
+  `restore_old_query_behavior` and the path-shaping options).
+- A short "Upgrading from 1.x in five minutes" table in the README, next to the full
+  migration guide.
+
+### Fixed
+
+- Removed a docs reference to a `@doc false` function that made `ex_doc` warn on
+  every build.
+
 ## [2.0.0] - 2026-08-11
 
 Breaking release. Migration notes with before/after strings:
@@ -53,7 +71,7 @@ Breaking release. Migration notes with before/after strings:
 ### Fixed
 
 - Emit query before fragment in `form_url` (RFC 3986 order). Previously
-  `Norma.Utils.form_url/1` concatenated the fragment before the query, producing
+  the internal URL assembly concatenated the fragment before the query, producing
   invalid URLs like `/Path#Frag?Q=Foo`. The fragment must come last. (#11)
 - Avoid a duplicate trailing slash when the URL path already ends with `/`
   and `add_trailing_slash` is set. (#11)
